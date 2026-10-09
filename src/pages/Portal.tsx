@@ -44,6 +44,7 @@ export default function Portal() {
   const { user, profile, signOut } = useAuth();
   const [tab, setTab] = useState<Tab>('dash');
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === '1');
+  const [hoverSuppressed, setHoverSuppressed] = useState(false);
   const [meMenuOpen, setMeMenuOpen] = useState(false);
   const meMenuRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
@@ -170,7 +171,11 @@ export default function Portal() {
 
   return (
     <div className={`app ${collapsed ? 'collapsed' : ''}`}>
-      <nav className={`side ${collapsed ? 'collapsed' : ''}`} aria-label="Portal">
+      <nav
+        className={`side ${collapsed ? 'collapsed' : ''} ${hoverSuppressed ? 'hover-suppressed' : ''}`}
+        aria-label="Portal"
+        onMouseLeave={() => setHoverSuppressed(false)}
+      >
         <div className="side-brand">
           <svg className="mark" viewBox="0 0 28 28" aria-hidden="true">
             <defs>
@@ -191,7 +196,10 @@ export default function Portal() {
           </span>
         </div>
         {TABS.map((t) => (
-          <button key={t.id} data-tab={t.id} title={t.label} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}>
+          <button key={t.id} data-tab={t.id} title={t.label} aria-current={tab === t.id ? 'page' : undefined} onClick={() => {
+            setTab(t.id);
+            setHoverSuppressed(true);
+          }}>
             <Icon id={t.icon} />
             <span className="side-label">{t.label}</span>
             {t.id === 'academy' && <span className="badge side-label">{lessonsDone}/{TOTAL_LESSONS}</span>}

@@ -27,15 +27,9 @@ export default function Login() {
       return;
     }
 
-    const { data: profileRow } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single();
-
-    await refreshProfile();
+    const profile = await refreshProfile(data.user.id);
     setLoading(false);
-    navigate(profileRow?.role === 'admin' ? '/admin' : '/portal', { replace: true });
+    navigate(profile?.role === 'admin' ? '/admin' : '/portal', { replace: true });
   };
 
   return (

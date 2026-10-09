@@ -21,7 +21,7 @@ type AuthContextValue = {
   profile: Profile | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: (userId?: string) => Promise<Profile | null>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -31,9 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = async (userId: string) => {
+  const loadProfile = async (userId: string): Promise<Profile | null> => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
-    setProfile((data as Profile | null) ?? null);
+    const loadedProfile = (data as Profile | null) ?? null;
+    setProfile(loadedProfile);
+    return loadedProfile;
   };
 
   useEffect(() => {
@@ -65,8 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
-  const refreshProfile = async () => {
-    if (session?.user) await loadProfile(session.user.id);
+  const refreshProfile = async (userId?: string) => {
+    const targetUserId = userId ?? session?.user.id;
+    return targetUserId ? loadProfile(targetUserId) : null;
   };
 
   return (

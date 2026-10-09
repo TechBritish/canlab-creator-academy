@@ -232,12 +232,14 @@ footer.site .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:
 .app.collapsed{grid-template-columns:68px 1fr}
 .side{border-right:1px solid var(--line);padding:16px 10px 18px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;align-self:start;background:var(--void);transition:padding .25s var(--ease),width .2s var(--ease),box-shadow .2s var(--ease)}
 .side.collapsed{width:68px}
-.side.collapsed:hover{width:216px;position:fixed;left:0;top:0;z-index:40;box-shadow:12px 0 36px rgba(0,0,0,.45);border-right:1px solid var(--line-2)}
-.side.collapsed:hover .side-brand,.side.collapsed:hover button,.side.collapsed:hover .me{justify-content:flex-start;padding-left:10px;gap:11px}
-.side.collapsed:hover .side-brand{padding-top:4px;padding-bottom:14px}
-.side.collapsed:hover button{padding:0 10px}
-.side.collapsed:hover .me{padding:12px}
-.side.collapsed:hover .side-label{display:inline}
+@media (hover:hover) and (min-width:1001px){
+  .side.collapsed:not(.hover-suppressed):hover{width:216px;position:fixed;left:0;top:0;z-index:40;box-shadow:12px 0 36px rgba(0,0,0,.45);border-right:1px solid var(--line-2)}
+  .side.collapsed:not(.hover-suppressed):hover .side-brand,.side.collapsed:not(.hover-suppressed):hover button,.side.collapsed:not(.hover-suppressed):hover .me{justify-content:flex-start;padding-left:10px;gap:11px}
+  .side.collapsed:not(.hover-suppressed):hover .side-brand{padding-top:4px;padding-bottom:14px}
+  .side.collapsed:not(.hover-suppressed):hover button{padding:0 10px}
+  .side.collapsed:not(.hover-suppressed):hover .me{padding:12px}
+  .side.collapsed:not(.hover-suppressed):hover .side-label{display:inline}
+}
 .side-brand{display:flex;align-items:center;gap:9px;padding:4px 8px 14px;margin-bottom:8px;border-bottom:1px solid var(--line);font-weight:600;letter-spacing:.1em;font-size:13px;color:var(--frost)}
 .side-brand .mark{width:24px;height:24px;flex:none}
 .side-brand small{display:block;font-family:var(--serif);font-style:italic;letter-spacing:0;font-weight:400;font-size:12px;color:var(--slate)}
