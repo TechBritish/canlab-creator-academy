@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth, type Profile } from '../context/AuthContext';
+import { COUNTED_ORDER_STATUSES } from '../lib/orderStatus';
 
 type SubmissionRow = {
   id: string;
@@ -15,6 +16,12 @@ type SubmissionRow = {
   profiles?: { full_name: string } | null;
 };
 
+type OrderAgg = { user_id: string; amount: number; created_at: string };
+type ClickAgg = { ref_code: string };
+
+const tierFor = (orders: number) => (orders >= 51 ? 'Elite' : orders >= 11 ? 'Pro' : 'Starter');
+const money = (n: number) => `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+
 export default function Admin() {
   const { signOut } = useAuth();
   const [rows, setRows] = useState<Profile[]>([]);
@@ -25,6 +32,10 @@ export default function Admin() {
   const [orderCreatorId, setOrderCreatorId] = useState('');
   const [orderAmount, setOrderAmount] = useState('');
   const [orderSaving, setOrderSaving] = useState(false);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [allOrders, setAllOrders] = useState<OrderAgg[]>([]);
+  const [allClicks, setAllClicks] = useState<ClickAgg[]>([]);
+  const [certifiedCount, setCertifiedCount] = useState(0);
 
   const load = async () => {
     setLoading(true);
@@ -35,6 +46,19 @@ export default function Admin() {
       .order('created_at', { ascending: false });
     setRows((data as Profile[]) ?? []);
     setLoading(false);
+  };
+
+  const loadOverview = async () => {
+    setOverviewLoading(true);
+    const [{ data: orderData }, { data: clickData }, { data: certData }] = await Promise.all([
+      supabase.from('orders').select('user_id, amount, created_at').in('status', COUNTED_ORDER_STATUSES),
+      supabase.from('clicks').select('ref_code'),
+      supabase.from('quiz_attempts').select('user_id').eq('passed', true),
+    ]);
+    setAllOrders((orderData as OrderAgg[]) ?? []);
+    setAllClicks((clickData as ClickAgg[]) ?? []);
+    setCertifiedCount(new Set(((certData as { user_id: string }[]) ?? []).map((c) => c.user_id)).size);
+    setOverviewLoading(false);
   };
 
   const loadSubs = async () => {
@@ -50,7 +74,54 @@ export default function Admin() {
   useEffect(() => {
     load();
     loadSubs();
+    loadOverview();
   }, []);
+
+  const approvedCreators = useMemo(() => rows.filter((r) => r.status === 'approved'), [rows]);
+
+  const monthStart = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }, []);
+
+  const ordersThisMonth = useMemo(
+    () => allOrders.filter((o) => new Date(o.created_at) >= monthStart),
+    [allOrders, monthStart]
+  );
+  const revenueThisMonth = useMemo(
+    () => ordersThisMonth.reduce((s, o) => s + Number(o.amount || 0), 0),
+    [ordersThisMonth]
+  );
+
+  const clicksByRef = useMemo(() => {
+    const acc: Record<string, number> = {};
+    allClicks.forEach((c) => {
+      acc[c.ref_code] = (acc[c.ref_code] ?? 0) + 1;
+    });
+    return acc;
+  }, [allClicks]);
+
+  const topCreators = useMemo(() => {
+    return approvedCreators
+      .map((r) => {
+        const creatorOrders = allOrders.filter((o) => o.user_id === r.id);
+        const revenue = creatorOrders.reduce((s, o) => s + Number(o.amount || 0), 0);
+        const clicksCount = r.ref_code ? clicksByRef[r.ref_code] ?? 0 : 0;
+        const conv = clicksCount > 0 ? (creatorOrders.length / clicksCount) * 100 : 0;
+        return {
+          id: r.id,
+          name: r.full_name,
+          platform: r.platform ?? '—',
+          tier: tierFor(creatorOrders.length),
+          clicks: clicksCount,
+          orders: creatorOrders.length,
+          revenue,
+          conv,
+        };
+      })
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+  }, [approvedCreators, allOrders, clicksByRef]);
 
   const setStatus = async (id: string, status: 'approved' | 'rejected') => {
     await supabase.from('profiles').update({ status }).eq('id', id);
@@ -85,12 +156,74 @@ export default function Admin() {
       <div className="wrap" style={{ paddingBlock: 60 }}>
         <div className="ph">
           <div>
-            <span className="label">Admin</span>
-            <h2 style={{ marginTop: 8 }}>Creator applications</h2>
+            <span className="label">CANLAB team view</span>
+            <h2 style={{ marginTop: 8 }}>Programme overview</h2>
           </div>
           <button className="btn sm" onClick={signOut}>
             Log out
           </button>
+        </div>
+
+        <div className="grid g4">
+          <div className="card kpi">
+            <span className="label">Active creators</span>
+            <div className="v">{overviewLoading && loading ? '—' : approvedCreators.length}</div>
+          </div>
+          <div className="card kpi">
+            <span className="label">Certified</span>
+            <div className="v">{overviewLoading ? '—' : certifiedCount}</div>
+          </div>
+          <div className="card kpi">
+            <span className="label">Creator orders · this month</span>
+            <div className="v">{overviewLoading ? '—' : ordersThisMonth.length}</div>
+          </div>
+          <div className="card kpi">
+            <span className="label">Creator revenue · this month</span>
+            <div className="v">{overviewLoading ? '—' : money(revenueThisMonth)}</div>
+          </div>
+        </div>
+
+        <div className="card tbl" style={{ marginTop: 16 }}>
+          <h3>Top creators</h3>
+          {overviewLoading ? (
+            <p className="muted" style={{ marginTop: 12 }}>Loading…</p>
+          ) : topCreators.length === 0 ? (
+            <p className="muted" style={{ marginTop: 12 }}>No order activity yet.</p>
+          ) : (
+            <table className="data" style={{ marginTop: 10 }}>
+              <thead>
+                <tr>
+                  <th>Creator</th>
+                  <th>Platform</th>
+                  <th>Tier</th>
+                  <th className="r">Clicks</th>
+                  <th className="r">Orders</th>
+                  <th className="r">Revenue</th>
+                  <th className="r">Conv.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topCreators.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.name}</td>
+                    <td>{c.platform}</td>
+                    <td><span className="st info plain">{c.tier}</span></td>
+                    <td className="r">{c.clicks.toLocaleString('en-US')}</td>
+                    <td className="r">{c.orders}</td>
+                    <td className="r">{money(c.revenue)}</td>
+                    <td className="r">{c.conv.toFixed(2)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="ph" style={{ marginTop: 48 }}>
+          <div>
+            <span className="label">Admin</span>
+            <h2 style={{ marginTop: 8 }}>Creator applications</h2>
+          </div>
         </div>
 
         {loading ? (
