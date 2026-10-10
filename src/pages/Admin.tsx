@@ -24,7 +24,6 @@ export default function Admin() {
   const [viewsDraft, setViewsDraft] = useState<Record<string, string>>({});
   const [orderCreatorId, setOrderCreatorId] = useState('');
   const [orderAmount, setOrderAmount] = useState('');
-  const [orderClicks, setOrderClicks] = useState('');
   const [orderSaving, setOrderSaving] = useState(false);
 
   const load = async () => {
@@ -70,13 +69,15 @@ export default function Admin() {
   const logOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = Number(orderAmount);
-    const clicks = Number(orderClicks) || 0;
     if (!orderCreatorId || !amount) return;
     setOrderSaving(true);
-    await supabase.from('orders').insert({ user_id: orderCreatorId, amount, clicks });
+    // Manual fallback only — orders placed through canlabintl.com are
+    // synced automatically by the WooCommerce webhook (see
+    // supabase/functions/woo-order-webhook). Use this for phone/offline
+    // sales that never hit the webhook.
+    await supabase.from('orders').insert({ user_id: orderCreatorId, amount, status: 'completed' });
     setOrderSaving(false);
     setOrderAmount('');
-    setOrderClicks('');
   };
 
   return (
@@ -192,10 +193,6 @@ export default function Admin() {
           <div className="field">
             <label htmlFor="o-amount">Sale amount ($)</label>
             <input id="o-amount" type="number" min="0" step="0.01" value={orderAmount} onChange={(e) => setOrderAmount(e.target.value)} required />
-          </div>
-          <div className="field">
-            <label htmlFor="o-clicks">Clicks driven</label>
-            <input id="o-clicks" type="number" min="0" value={orderClicks} onChange={(e) => setOrderClicks(e.target.value)} />
           </div>
           <button className="btn solid" type="submit" disabled={orderSaving}>
             {orderSaving ? 'Saving…' : 'Log order'}

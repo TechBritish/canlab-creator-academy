@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabaseClient';
+import { COUNTED_ORDER_STATUSES } from '../lib/orderStatus';
 import { MODS } from '../data/mockData';
 import Icon from '../components/Icon';
 import Academy from '../components/portal/Academy';
@@ -63,21 +64,36 @@ export default function Portal() {
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const [{ data: progress }, { data: recentOrders }, { data: thisMonthOrders }] = await Promise.all([
+      const refCode = profile?.ref_code;
+
+      const [{ data: progress }, { data: recentClicks }, { data: recentOrders }, { data: thisMonthOrders }] = await Promise.all([
         supabase.from('academy_progress').select('lesson_key').eq('user_id', user.id),
-        supabase.from('orders').select('clicks').eq('user_id', user.id).gte('created_at', since.toISOString()),
-        supabase.from('orders').select('id').eq('user_id', user.id).gte('created_at', monthStart.toISOString()),
+        refCode
+          ? supabase.from('clicks').select('id').eq('ref_code', refCode).gte('created_at', since.toISOString())
+          : Promise.resolve({ data: [] as { id: number }[] }),
+        supabase
+          .from('orders')
+          .select('id')
+          .eq('user_id', user.id)
+          .in('status', COUNTED_ORDER_STATUSES)
+          .gte('created_at', since.toISOString()),
+        supabase
+          .from('orders')
+          .select('id')
+          .eq('user_id', user.id)
+          .in('status', COUNTED_ORDER_STATUSES)
+          .gte('created_at', monthStart.toISOString()),
       ]);
       if (!active) return;
       setLessonsDone((progress ?? []).length);
-      setClicks30d((recentOrders ?? []).reduce((s, r) => s + (r.clicks ?? 0), 0));
+      setClicks30d((recentClicks ?? []).length);
       setOrders30d((recentOrders ?? []).length);
       setMonthOrders((thisMonthOrders ?? []).length);
     })();
     return () => {
       active = false;
     };
-  }, [user, tab]);
+  }, [user, tab, profile?.ref_code]);
 
   const trainingPct = Math.round((lessonsDone / TOTAL_LESSONS) * 100);
   const { tier, disc, next } = tierFor(monthOrders);
@@ -162,7 +178,7 @@ export default function Portal() {
   }
 
   const firstName = profile.full_name.split(' ')[0];
-  const refCode = `${profile.full_name.split(' ')[0]?.toUpperCase().slice(0, 4)}15`;
+  const refCode = profile.ref_code ?? `${profile.full_name.split(' ')[0]?.toUpperCase().slice(0, 4)}15`;
 
   const copyRef = () => {
     const link = `canlabintl.com/?ref=${refCode}`;

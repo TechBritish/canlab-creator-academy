@@ -12,6 +12,7 @@ export type Profile = {
   followers: string | null;
   handle: string | null;
   niche: string | null;
+  ref_code: string | null;
   created_at: string;
 };
 
