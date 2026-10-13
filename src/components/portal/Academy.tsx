@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MODS, QUIZ } from '../../data/mockData';
+import { MODS } from '../../data/mockData';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -7,17 +7,10 @@ import Icon from '../Icon';
 
 const TOTAL = MODS.reduce((s, m) => s + m.lessons.length, 0);
 
-type PassedAttempt = { id: string; score: number; total: number; created_at: string };
-
 export default function Academy({ onCertified }: { onCertified?: () => void }) {
   const { user, profile } = useAuth();
   const [done, setDone] = useState<Set<string>>(new Set());
   const [cur, setCur] = useState<[number, number]>([0, 0]);
-  const [passed, setPassed] = useState(false);
-  const [passedAttempt, setPassedAttempt] = useState<PassedAttempt | null>(null);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [checked, setChecked] = useState(false);
-  const [score, setScore] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const toast = useToast();
 
@@ -25,22 +18,13 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
     if (!user) return;
     let active = true;
     (async () => {
-      const [{ data: progress }, { data: attempts }] = await Promise.all([
-        supabase.from('academy_progress').select('lesson_key').eq('user_id', user.id),
-        supabase
-          .from('quiz_attempts')
-          .select('id, score, total, created_at')
-          .eq('user_id', user.id)
-          .eq('passed', true)
-          .order('created_at', { ascending: true })
-          .limit(1),
-      ]);
+      const { data: progress } = await supabase
+        .from('academy_progress')
+        .select('lesson_key')
+        .eq('user_id', user.id);
       if (!active) return;
       const doneSet = new Set((progress ?? []).map((r) => r.lesson_key as string));
       setDone(doneSet);
-      const firstPass = (attempts as PassedAttempt[] | null)?.[0] ?? null;
-      setPassed(!!firstPass);
-      setPassedAttempt(firstPass);
       // Resume at the first incomplete lesson, otherwise the first lesson.
       outer: for (let a = 0; a < MODS.length; a++) {
         for (let b = 0; b < MODS[a].lessons.length; b++) {
@@ -57,12 +41,15 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
     };
   }, [user]);
 
+  const passed = done.size === TOTAL;
+
   const [mi, li] = cur;
   const mod = MODS[mi];
   const lesson = mod.lessons[li];
   const key = `${mi}-${li}`;
 
   const markDone = async () => {
+    const willComplete = !done.has(key) && done.size + 1 === TOTAL;
     setDone((d) => new Set(d).add(key));
     toast('Lesson complete');
     if (!user) return;
@@ -70,6 +57,10 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
       { user_id: user.id, lesson_key: key },
       { onConflict: 'user_id,lesson_key' }
     );
+    if (willComplete) {
+      toast('Certified. Link and clip library unlocked');
+      onCertified?.();
+    }
   };
 
   const nextLesson = () => {
@@ -81,38 +72,6 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
     }
     setCur([a, b]);
   };
-
-  const submitQuiz = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let s = 0;
-    QUIZ.forEach((q, i) => {
-      if (answers[i] === q.a) s++;
-    });
-    setScore(s);
-    setChecked(true);
-    const didPass = s === QUIZ.length;
-    if (user) {
-      const { data } = await supabase
-        .from('quiz_attempts')
-        .insert({ user_id: user.id, score: s, total: QUIZ.length, passed: didPass })
-        .select('id, score, total, created_at')
-        .single();
-      if (didPass && data) {
-        setPassed(true);
-        setPassedAttempt(data as PassedAttempt);
-        toast('Certified. Link and clip library unlocked');
-        onCertified?.();
-      }
-    } else if (didPass) {
-      setPassed(true);
-      toast('Certified. Link and clip library unlocked');
-      onCertified?.();
-    }
-  };
-
-  const certLot = passedAttempt
-    ? `CRA-${new Date(passedAttempt.created_at).getFullYear()}-${passedAttempt.id.slice(0, 8).toUpperCase()}`
-    : null;
 
   if (!loaded) {
     return (
@@ -181,10 +140,13 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
         <div style={{ display: 'grid', gap: 16, alignContent: 'start' }}>
           <div className="player">
             <div className="vid">
-              <button className="play" aria-label="Play lesson" onClick={() => toast('Lesson video plays here in the live build')}>
-                <Icon id="play" strokeWidth={2} style={{ width: 26, height: 26 }} />
-              </button>
-              <span className="cap">{mod.n} · Lesson {li + 1} · {lesson[1]}</span>
+              <video
+                key={mod.video}
+                controls
+                src={mod.video}
+                style={{ width: '100%', height: '100%', display: 'block', borderRadius: 'inherit' }}
+              />
+              <span className="cap">{mod.n} · {mod.t}</span>
             </div>
             <div className="body">
               <span className="label">{mod.t}</span>
@@ -199,49 +161,6 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
             </div>
           </div>
 
-          <div className="card">
-            {passed ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                <h3>Compliance check</h3>
-                <span className="st good">Passed {passedAttempt?.score ?? QUIZ.length}/{passedAttempt?.total ?? QUIZ.length}</span>
-              </div>
-            ) : (
-              <>
-                <span className="label">Module 2 · required</span>
-                <h3 style={{ marginTop: 6, fontSize: 22 }}>Compliance check</h3>
-                <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>Score 5/5 to unlock your link and the clip library.</p>
-                <form onSubmit={submitQuiz}>
-                  {QUIZ.map((q, i) => (
-                    <div className="q" key={q.q}>
-                      <h4>{i + 1}. {q.q}</h4>
-                      {q.o.map((o, j) => {
-                        const cls = checked && answers[i] === j ? (j === q.a ? 'right' : 'wrong') : '';
-                        return (
-                          <label className={`opt ${cls}`} key={o}>
-                            <input
-                              type="radio"
-                              name={`q${i}`}
-                              checked={answers[i] === j}
-                              onChange={() => {
-                                setAnswers((a) => ({ ...a, [i]: j }));
-                                setChecked(false);
-                              }}
-                            />
-                            <span>{o}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  ))}
-                  <button className="btn solid" type="submit" style={{ marginTop: 8, width: '100%' }}>Check answers</button>
-                  {checked && score !== QUIZ.length && (
-                    <p className="muted" style={{ fontSize: 13.5, marginTop: 10 }}>{score}/5. Check the highlighted answers and try again.</p>
-                  )}
-                </form>
-              </>
-            )}
-          </div>
-
           <div className={`coa ${passed ? '' : 'locked'}`}>
             <header>
               <div>
@@ -249,18 +168,12 @@ export default function Academy({ onCertified }: { onCertified?: () => void }) {
                 <h3>{profile?.full_name ?? 'Creator'}</h3>
               </div>
               <span style={{ color: passed ? 'var(--ice)' : 'var(--slate)' }}>
-                {passed ? `Lot ${certLot}` : <><Icon id="lock" strokeWidth={1.8} /> Locked</>}
+                {passed ? 'Complete' : <><Icon id="lock" strokeWidth={1.8} /> Locked</>}
               </span>
             </header>
             <table>
               <tbody>
                 <tr><td>Programme</td><td>CANLAB Creator Academy</td></tr>
-                <tr>
-                  <td>Compliance check</td>
-                  <td className={passed ? 'pass' : ''}>
-                    {passed ? `PASS · ${passedAttempt?.score ?? QUIZ.length}/${passedAttempt?.total ?? QUIZ.length}` : 'Pending'}
-                  </td>
-                </tr>
                 <tr><td>Lessons</td><td>{done.size}/{TOTAL}</td></tr>
                 <tr><td>Status</td><td className={passed ? 'pass' : ''}>{passed ? 'Certified creator' : 'Not yet certified'}</td></tr>
               </tbody>

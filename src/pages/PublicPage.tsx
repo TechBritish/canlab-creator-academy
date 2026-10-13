@@ -9,6 +9,8 @@ import RewardsCalculator from '../components/public/RewardsCalculator';
 import StandardSection from '../components/public/StandardSection';
 import ApplyForm from '../components/public/ApplyForm';
 import Closer from '../components/public/Closer';
+import VoiceAgent from '../components/portal/VoiceAgent';
+import VoiceAgentBoundary from '../components/portal/VoiceAgentBoundary';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -43,6 +45,9 @@ export default function PublicPage() {
       <StandardSection />
       <ApplyForm />
       <Closer onApply={() => scrollToId('apply')} />
+      <VoiceAgentBoundary>
+        <VoiceAgent autoStart />
+      </VoiceAgentBoundary>
     </main>
   );
 }

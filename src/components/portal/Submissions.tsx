@@ -10,9 +10,11 @@ type SubRow = {
   id: string;
   clip_used: string;
   platform: string;
+  post_url: string;
   status: string;
   status_cls: string;
   views: string;
+  admin_note: string | null;
   created_at: string;
 };
 
@@ -24,6 +26,9 @@ export default function Submissions() {
   const [platform, setPlatform] = useState(PLATFORMS[0]);
   const [clip, setClip] = useState(CLIPS[0].h.replace(/"/g, ''));
   const [ok, setOk] = useState(false);
+  const [resubmitId, setResubmitId] = useState<string | null>(null);
+  const [resubmitUrl, setResubmitUrl] = useState('');
+  const [resubmitNote, setResubmitNote] = useState('');
   const toast = useToast();
 
   const clipOptions = [...CLIPS.map((c) => c.h.replace(/"/g, '')), 'Own footage'];
@@ -33,7 +38,7 @@ export default function Submissions() {
     setLoading(true);
     const { data } = await supabase
       .from('submissions')
-      .select('id, clip_used, platform, status, status_cls, views, created_at')
+      .select('id, clip_used, platform, post_url, status, status_cls, views, admin_note, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     setSubs((data as SubRow[]) ?? []);
@@ -78,6 +83,38 @@ export default function Submissions() {
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
 
+  const startResubmit = (s: SubRow) => {
+    setResubmitId(s.id);
+    setResubmitUrl(s.post_url);
+    setResubmitNote('');
+  };
+
+  const submitResubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resubmitId) return;
+    if (!/^https?:\/\/\S+\.\S+/.test(resubmitUrl.trim())) {
+      toast('Paste the full post link first');
+      return;
+    }
+    const { error } = await supabase
+      .from('submissions')
+      .update({
+        post_url: resubmitUrl.trim(),
+        status: 'In review',
+        status_cls: 'warn',
+        admin_note: null,
+        resubmit_note: resubmitNote.trim() || null,
+      })
+      .eq('id', resubmitId);
+    if (error) {
+      toast('Could not resubmit. Try again.');
+      return;
+    }
+    toast('Resubmitted for review');
+    setResubmitId(null);
+    load();
+  };
+
   return (
     <section data-panel="subs">
       <div className="ph">
@@ -103,7 +140,19 @@ export default function Submissions() {
                     <td>{s.clip_used}</td>
                     <td>{s.platform}</td>
                     <td className="mono muted">{fmtDate(s.created_at)}</td>
-                    <td><span className={`st ${s.status_cls}`}>{s.status}</span></td>
+                    <td>
+                      <span className={`st ${s.status_cls}`}>{s.status}</span>
+                      {s.status === 'Needs changes' && (
+                        <div style={{ marginTop: 6 }}>
+                          {s.admin_note && (
+                            <div className="muted" style={{ fontSize: 12 }}>{s.admin_note}</div>
+                          )}
+                          <button type="button" className="btn sm" style={{ marginTop: 4 }} onClick={() => startResubmit(s)}>
+                            Resubmit
+                          </button>
+                        </div>
+                      )}
+                    </td>
                     <td className="r">{s.views}</td>
                   </tr>
                 ))
@@ -141,6 +190,33 @@ export default function Submissions() {
           <button className="btn solid" type="submit">Submit for review</button>
         </form>
       </div>
+      {resubmitId && (
+        <form className="card" style={{ display: 'grid', gap: 16, marginTop: 16 }} onSubmit={submitResubmit}>
+          <h3>Resubmit post</h3>
+          <div className="field">
+            <label htmlFor="r-url">Updated post link</label>
+            <input
+              id="r-url"
+              value={resubmitUrl}
+              onChange={(e) => setResubmitUrl(e.target.value)}
+              placeholder="https://tiktok.com/@you/video/..."
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="r-note">What changed (optional)</label>
+            <input
+              id="r-note"
+              value={resubmitNote}
+              onChange={(e) => setResubmitNote(e.target.value)}
+              placeholder="e.g. removed the claim the admin flagged"
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn solid" type="submit">Resubmit for review</button>
+            <button className="btn" type="button" onClick={() => setResubmitId(null)}>Cancel</button>
+          </div>
+        </form>
+      )}
     </section>
   );
 }

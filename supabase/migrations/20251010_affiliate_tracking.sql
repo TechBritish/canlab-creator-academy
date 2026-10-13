@@ -71,3 +71,9 @@ drop policy if exists "creators read own clicks" on clicks;
 create policy "creators read own clicks" on clicks
   for select to authenticated
   using (ref_code in (select ref_code from profiles where id = auth.uid()));
+
+-- Admins can read all click events for analytics.
+drop policy if exists "admins read all clicks" on clicks;
+create policy "admins read all clicks" on clicks
+  for select to authenticated
+  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));

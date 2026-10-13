@@ -87,11 +87,13 @@ function CloseIcon() {
 // CJS/ESM interop bug under Vite ("import_vapi.default is not a
 // constructor" - see VapiAI/client-sdk-web#149). Using the SDK directly
 // also gives us full control over styling to match the reference design.
-export default function VoiceAgent() {
+export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean }) {
   const publicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
   const assistantId = import.meta.env.VITE_VAPI_ASSISTANT_ID;
 
   const vapiRef = useRef<Vapi | null>(null);
+  const autoStartedRef = useRef(false);
+  const [isReady, setIsReady] = useState(false);
   const transcriptScrollRef = useRef<HTMLDivElement | null>(null);
   const transcriptIdRef = useRef(0);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -112,6 +114,7 @@ export default function VoiceAgent() {
 
     const vapi = new VapiConstructor(publicKey);
     vapiRef.current = vapi;
+    setIsReady(true);
 
     const onCallStart = () => {
       setIsConnecting(false);
@@ -207,6 +210,41 @@ export default function VoiceAgent() {
     const list = transcriptScrollRef.current;
     if (list) list.scrollTop = list.scrollHeight;
   }, [transcript, liveCaption]);
+
+  // Public site: try to greet visitors the moment they land. Browsers block
+  // audio/mic access that isn't tied to a user gesture, so if the immediate
+  // attempt is rejected we silently retry on the visitor's very first
+  // interaction with the page (click, key press, or scroll) instead of
+  // leaving the agent dead until they notice the mic button.
+  useEffect(() => {
+    if (!autoStart || !isReady || !assistantId || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+
+    const vapi = vapiRef.current;
+    if (!vapi) return;
+
+    const beginCall = () => {
+      setIsPanelOpen(true);
+      setIsConnecting(true);
+      setCallError(null);
+      return vapi.start(assistantId);
+    };
+
+    beginCall().catch(() => {
+      setIsConnecting(false);
+      setIsPanelOpen(false);
+      const onFirstInteraction = () => {
+        beginCall().catch((error) => {
+          console.error('Unable to start Vapi call on interaction:', error);
+          setIsConnecting(false);
+          setCallError(getCallErrorMessage(error));
+        });
+      };
+      window.addEventListener('pointerdown', onFirstInteraction, { once: true });
+      window.addEventListener('keydown', onFirstInteraction, { once: true });
+      window.addEventListener('scroll', onFirstInteraction, { once: true, passive: true });
+    });
+  }, [autoStart, isReady, assistantId]);
 
   if (!publicKey || !assistantId) return null;
 
