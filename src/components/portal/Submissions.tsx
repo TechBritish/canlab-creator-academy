@@ -4,7 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 
-const PLATFORMS = ['TikTok', 'Instagram', 'YouTube Shorts', 'X'];
+const PLATFORMS = ['TikTok', 'Instagram', 'YouTube Shorts', 'X', 'LinkedIn'];
 
 type SubRow = {
   id: string;
