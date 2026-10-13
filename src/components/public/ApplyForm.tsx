@@ -102,7 +102,7 @@ export default function ApplyForm() {
           </div>
           <div className="field"><label htmlFor="a-pass">Password</label><input id="a-pass" ref={passRef} type="password" autoComplete="new-password" aria-invalid={invalid === 'password' || undefined} /></div>
           <div className="row2">
-            <div className="field"><label htmlFor="a-plat">Main platform</label><select id="a-plat" ref={platRef} defaultValue=""><option value="" disabled>Select platform</option><option>TikTok</option><option>Instagram</option><option>YouTube Shorts</option><option>X</option><option>LinkedIn</option></select></div>
+            <div className="field"><label htmlFor="a-plat">Main platform</label><select id="a-plat" ref={platRef} defaultValue=""><option value="" disabled>Select platform</option><option>TikTok</option><option>Instagram</option><option>YouTube Shorts</option><option>X</option><option>LinkedIn</option><option>Facebook</option></select></div>
             <div className="field"><label htmlFor="a-foll">Followers</label><select id="a-foll" ref={follRef} defaultValue=""><option value="" disabled>Select range</option><option>1k–10k</option><option>10k–50k</option><option>50k–100k</option></select></div>
           </div>
           <div className="field"><label htmlFor="a-handle">Handle or profile link</label><input id="a-handle" ref={handleRef} placeholder="@jordanlabnotes" aria-invalid={invalid === 'handle' || undefined} /></div>
