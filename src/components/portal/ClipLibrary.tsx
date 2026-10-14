@@ -51,6 +51,7 @@ export default function ClipLibrary() {
                 <span className="tag">{c.f}</span>
                 <span className="tag">{c.p}</span>
               </div>
+              <p className="clip-brief">{c.cap.split('\n')[0]}</p>
               <button className="btn sm" onClick={() => setBrief(c)}>Use this clip <Icon id="arrow" /></button>
             </div>
           </div>
@@ -58,24 +59,44 @@ export default function ClipLibrary() {
       </div>
 
       {brief && (
-        <div className="card brief">
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <div>
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setBrief(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            className="card brief brief-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 420, width: '100%', maxHeight: '85vh', overflowY: 'auto', position: 'relative', padding: 20 }}
+          >
+            <button
+              aria-label="Close"
+              onClick={() => setBrief(null)}
+              className="btn sm"
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 1 }}
+            >
+              <Icon id="x" />
+            </button>
+            <div style={{ paddingRight: 40 }}>
               <span className="label">Brief</span>
-              <h3 style={{ marginTop: 6, fontSize: 22 }}>{brief.h}</h3>
+              <h3 style={{ marginTop: 4, fontSize: 18, lineHeight: 1.25 }}>{brief.h}</h3>
             </div>
-            <div className="actions">
+            <video src={brief.video} controls style={{ width: '100%', maxHeight: '38vh', objectFit: 'contain', background: '#000', borderRadius: 12, marginTop: 10, display: 'block' }} />
+            <p className="muted" style={{ marginTop: 10, fontSize: 13.5 }}>
+              {brief.f} · best on {brief.p}. Add your own voice in the first 2 seconds and keep the research-use line.
+            </p>
+            <div className="actions" style={{ marginTop: 10 }}>
               <a className="btn sm" href={brief.video} download>Download clip</a>
               <button className="btn sm solid" onClick={() => copyCaption(brief.cap)}>
                 <Icon id="copy" strokeWidth={1.8} />Copy caption
               </button>
             </div>
+            <pre style={{ marginTop: 10, fontSize: 12 }}>{brief.cap}</pre>
           </div>
-          <p className="muted" style={{ marginTop: 12, fontSize: 14.5 }}>
-            {brief.f} · best on {brief.p}. Add your own voice in the first 2 seconds and keep the research-use line.
-          </p>
-          <video src={brief.video} controls style={{ width: '100%', maxWidth: 320, borderRadius: 12, marginTop: 12, display: 'block' }} />
-          <pre>{brief.cap}</pre>
         </div>
       )}
     </section>

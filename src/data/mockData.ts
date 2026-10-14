@@ -38,6 +38,11 @@ export const CLIPS: Clip[] = [
   { h: 'Artificial sweeteners: moderation is key', f: 'Myth vs fact', p: 'TikTok', d: '0:45', g: ['#17504A', '#0A1C1A'], cap: "What the research actually says about artificial sweeteners and moderation.\n\nFor laboratory and research use only. #ad", video: '/clips/c3.mp4' },
   { h: 'Methylene blue & nicotine: athlete performance', f: 'Lab tour', p: 'YouTube Shorts', d: '0:45', g: ['#27415A', '#0C141C'], cap: "Cycling methylene blue and nicotine for athlete performance research. Here's what the data shows.\n\nFor laboratory and research use only. #ad", video: '/clips/c4.mp4' },
   { h: 'Growth hormone & red light therapy for recovery', f: 'Q&A', p: 'X', d: '0:45', g: ['#4A2C4F', '#160D18'], cap: "Biohacking recovery research: growth hormone and red light therapy, what the studies say.\n\nFor laboratory and research use only. #ad", video: '/clips/c5.mp4' },
+  { h: 'Build muscle & lose fat: the anabolic secret', f: 'Myth vs fact', p: 'TikTok', d: '0:45', g: ['#1F4E63', '#0A161C'], cap: "The anabolic secret behind building muscle and losing fat, backed by the research.\n\nFor laboratory and research use only. #ad", video: '/clips/c6.mp4' },
+  { h: 'GLP-1s: the obesity game-changer', f: 'COA read', p: 'Instagram', d: '0:45', g: ['#2A3E6B', '#0D1226'], cap: "What you need to know about GLP-1s as the obesity research game-changer.\n\nFor laboratory and research use only. #ad", video: '/clips/c7.mp4' },
+  { h: 'Grow your brain: neuroplasticity secrets', f: 'Myth vs fact', p: 'YouTube Shorts', d: '0:45', g: ['#2F5A3E', '#0D1C12'], cap: "Neuroplasticity secrets from the research: how to grow your brain.\n\nFor laboratory and research use only. #ad", video: '/clips/c8.mp4' },
+  { h: 'L-Carnitine pre-workout: sweat, muscle, pumps', f: 'Lab tour', p: 'TikTok', d: '0:45', g: ['#6B3A2E', '#261410'], cap: "L-Carnitine pre-workout research: sweat, muscle and pumps, explained.\n\nFor laboratory and research use only. #ad", video: '/clips/c9.mp4' },
+  { h: 'MK: the only peptide driving growth hormone', f: 'Q&A', p: 'Instagram', d: '0:45', g: ['#4F2C4A', '#180D16'], cap: "The only peptide shown to drive growth hormone through enzymatic action, per the research.\n\nFor laboratory and research use only. #ad", video: '/clips/c10.mp4' },
 ];
 
 export const clipBg = (c: Clip) =>

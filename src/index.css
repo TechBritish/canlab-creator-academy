@@ -344,8 +344,13 @@ footer.site .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:
 .thumb .hk{font-weight:700;font-size:20px;line-height:1.08;letter-spacing:-.02em;text-shadow:0 2px 14px rgba(0,0,0,.4)}
 .clip .info{padding:16px;display:grid;gap:12px}
 .tags{display:flex;gap:6px;flex-wrap:wrap}
+.clip-brief{font-size:13px;line-height:1.5;color:var(--slate);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .brief{margin-top:20px}
 .brief pre{white-space:pre-wrap;font-family:var(--mono);font-size:13px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0 0;color:var(--frost)}
+.brief-modal{scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.brief-modal::-webkit-scrollbar{width:6px}
+.brief-modal::-webkit-scrollbar-track{background:transparent}
+.brief-modal::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:99px}
 .tbl{overflow-x:auto}
 table.data{width:100%;border-collapse:collapse;font-size:14.5px}
 table.data th{text-align:left;font-family:var(--mono);font-weight:400;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--slate);padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
