@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useToast } from '../../context/ToastContext';
 import Icon from '../Icon';
 import Wave from '../Wave';
@@ -10,13 +9,20 @@ const CHANNELS = [
   { h: '#compliance-help', d: '"Can I say this?" answered fast' },
 ];
 
-export default function Community() {
-  const [onCall, setOnCall] = useState(false);
+export default function Community({
+  isCallActive = false,
+  onStartCall,
+}: {
+  /** Whether the shared voice agent (bottom-right mic) currently has a live call. */
+  isCallActive?: boolean;
+  /** Opens the voice agent panel and starts a real Vapi call. */
+  onStartCall?: () => void;
+}) {
   const toast = useToast();
 
-  const note = onCall
+  const note = isCallActive
     ? 'Coach: "Hi Maya. Want to practise handling a dosing question in the comments?"'
-    : 'The voice agent connects here in the live build.';
+    : 'Tap to start a live voice session with your AI coach.';
 
   return (
     <section data-panel="comm">
@@ -52,9 +58,18 @@ export default function Community() {
             A voice agent that role-plays tricky comments, checks your script against the rules and answers product questions any time.
           </p>
           <Wave style={{ marginBlock: 22 }} />
-          <button className={`btn ${onCall ? '' : 'solid'}`} onClick={() => setOnCall((o) => !o)}>
+          <button
+            className={`btn ${isCallActive ? '' : 'solid'}`}
+            onClick={() => {
+              if (isCallActive) {
+                toast('Use the voice panel in the corner to end the call.');
+                return;
+              }
+              onStartCall?.();
+            }}
+          >
             <Icon id="mic" strokeWidth={1.8} />
-            {onCall ? 'End practice call' : 'Start a practice call'}
+            {isCallActive ? 'Call in progress' : 'Start a practice call'}
           </button>
           <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>{note}</p>
         </div>

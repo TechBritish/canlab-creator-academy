@@ -10,7 +10,7 @@ import ClipLibrary from '../components/portal/ClipLibrary';
 import Submissions from '../components/portal/Submissions';
 import Rewards from '../components/portal/Rewards';
 import Community from '../components/portal/Community';
-import VoiceAgent from '../components/portal/VoiceAgent';
+import VoiceAgent, { type VoiceAgentHandle } from '../components/portal/VoiceAgent';
 import VoiceAgentBoundary from '../components/portal/VoiceAgentBoundary';
 
 type Tab = 'dash' | 'academy' | 'clips' | 'subs' | 'earn' | 'comm';
@@ -48,6 +48,8 @@ export default function Portal() {
   const [hoverSuppressed, setHoverSuppressed] = useState(false);
   const [meMenuOpen, setMeMenuOpen] = useState(false);
   const meMenuRef = useRef<HTMLDivElement>(null);
+  const voiceAgentRef = useRef<VoiceAgentHandle>(null);
+  const [voiceCallActive, setVoiceCallActive] = useState(false);
   const toast = useToast();
 
   const [lessonsDone, setLessonsDone] = useState(0);
@@ -350,12 +352,17 @@ export default function Portal() {
         {tab === 'clips' && <ClipLibrary />}
         {tab === 'subs' && <Submissions />}
         {tab === 'earn' && <Rewards />}
-        {tab === 'comm' && <Community />}
+        {tab === 'comm' && (
+          <Community
+            isCallActive={voiceCallActive}
+            onStartCall={() => voiceAgentRef.current?.startCall()}
+          />
+        )}
 
       </div>
 
       <VoiceAgentBoundary>
-        <VoiceAgent onSwitchTab={setTab} />
+        <VoiceAgent ref={voiceAgentRef} onSwitchTab={setTab} onCallStateChange={setVoiceCallActive} />
       </VoiceAgentBoundary>
     </div>
   );

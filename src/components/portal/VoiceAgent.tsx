@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Vapi from '@vapi-ai/web';
 import './VoiceAgent.css';
@@ -127,14 +127,22 @@ function buildTools(inPortal: boolean) {
 // CJS/ESM interop bug under Vite ("import_vapi.default is not a
 // constructor" - see VapiAI/client-sdk-web#149). Using the SDK directly
 // also gives us full control over styling to match the reference design.
-export default function VoiceAgent({
-  autoStart = false,
-  onSwitchTab,
-}: {
+export type VoiceAgentHandle = {
+  /** Opens the panel and starts a call, e.g. from a "Start practice call" button elsewhere on the page. */
+  startCall: () => void;
+};
+
+const VoiceAgent = forwardRef<VoiceAgentHandle, {
   autoStart?: boolean;
   /** Provided by Portal so the agent can switch tabs by voice ("switch_tab" tool). */
   onSwitchTab?: (tab: PortalTab) => void;
-}) {
+  /** Lets a parent (e.g. the Community tab) know whether a call is live, to mirror button state. */
+  onCallStateChange?: (active: boolean) => void;
+}>(function VoiceAgent({
+  autoStart = false,
+  onSwitchTab,
+  onCallStateChange,
+}, ref) {
   const publicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
   const assistantId = import.meta.env.VITE_VAPI_ASSISTANT_ID;
 
@@ -145,6 +153,8 @@ export default function VoiceAgent({
   const inPortal = location.pathname.startsWith('/portal');
   const onSwitchTabRef = useRef(onSwitchTab);
   onSwitchTabRef.current = onSwitchTab;
+  const onCallStateChangeRef = useRef(onCallStateChange);
+  onCallStateChangeRef.current = onCallStateChange;
 
   // Same Vapi assistant everywhere on the site, just with the site map,
   // navigation tools and an up-to-date system prompt layered on top so it
@@ -193,6 +203,7 @@ export default function VoiceAgent({
       setDuration(0);
       setLocalVolumeLevel(0);
       setConnectionStage(null);
+      onCallStateChangeRef.current?.(true);
     };
     const onCallEnd = () => {
       setIsConnecting(false);
@@ -203,6 +214,7 @@ export default function VoiceAgent({
       setLocalVolumeLevel(0);
       setConnectionStage(null);
       setIsPanelOpen(false);
+      onCallStateChangeRef.current?.(false);
     };
     const onError = (error: unknown) => {
       console.error('Vapi call error:', error);
@@ -389,6 +401,10 @@ export default function VoiceAgent({
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    startCall: () => void startCall(),
+  }));
+
   const handleMicClick = () => {
     if (isCallActive || isConnecting) {
       setIsPanelOpen(true);
@@ -537,4 +553,6 @@ export default function VoiceAgent({
       </button>
     </div>
   );
-}
+});
+
+export default VoiceAgent;
