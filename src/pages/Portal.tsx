@@ -355,7 +355,7 @@ export default function Portal() {
       </div>
 
       <VoiceAgentBoundary>
-        <VoiceAgent />
+        <VoiceAgent onSwitchTab={setTab} />
       </VoiceAgentBoundary>
     </div>
   );

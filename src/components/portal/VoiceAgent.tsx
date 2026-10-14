@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Vapi from '@vapi-ai/web';
 import './VoiceAgent.css';
+import {
+  buildSiteKnowledge,
+  PUBLIC_SECTIONS,
+  VOICE_ROUTES,
+  type PortalTab,
+  type VoiceRoute,
+} from '../../lib/site-knowledge';
 
 // @vapi-ai/web is published as CommonJS. Vite exposes its exports object as
 // the default import, with the actual class nested one level deeper.
@@ -78,6 +86,38 @@ function CloseIcon() {
   );
 }
 
+function flash(el: Element | null) {
+  if (!(el instanceof HTMLElement)) return false;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('voice-agent-highlight');
+  window.setTimeout(() => el.classList.remove('voice-agent-highlight'), 3500);
+  return true;
+}
+
+const makeTool = (name: string, description: string, properties: Record<string, unknown> = {}, required: string[] = []) => ({
+  type: 'function' as const,
+  async: true,
+  function: { name, description, parameters: { type: 'object' as const, properties, required } },
+});
+
+function buildTools(inPortal: boolean) {
+  const tools = [
+    makeTool('navigate', 'Go to a top-level page of the site.', {
+      page: { type: 'string', enum: Object.keys(VOICE_ROUTES) },
+    }, ['page']),
+    makeTool('scroll_to', 'Scroll to and highlight a section on the public landing page by id.', {
+      id: { type: 'string', enum: Object.values(PUBLIC_SECTIONS) },
+    }, ['id']),
+    makeTool('end_call', 'End the voice conversation.'),
+  ];
+  if (inPortal) {
+    tools.splice(2, 0, makeTool('switch_tab', 'Switch to a tab inside the creator portal.', {
+      tab: { type: 'string', enum: ['dash', 'academy', 'clips', 'subs', 'earn', 'comm'] },
+    }, ['tab']));
+  }
+  return tools;
+}
+
 // Floating bottom-right round voice button, same spot as the reference site.
 // Keys live in .env as VITE_VAPI_PUBLIC_KEY / VITE_VAPI_ASSISTANT_ID so they
 // never need to be hardcoded here.
@@ -87,9 +127,39 @@ function CloseIcon() {
 // CJS/ESM interop bug under Vite ("import_vapi.default is not a
 // constructor" - see VapiAI/client-sdk-web#149). Using the SDK directly
 // also gives us full control over styling to match the reference design.
-export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean }) {
+export default function VoiceAgent({
+  autoStart = false,
+  onSwitchTab,
+}: {
+  autoStart?: boolean;
+  /** Provided by Portal so the agent can switch tabs by voice ("switch_tab" tool). */
+  onSwitchTab?: (tab: PortalTab) => void;
+}) {
   const publicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
   const assistantId = import.meta.env.VITE_VAPI_ASSISTANT_ID;
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathRef = useRef(location.pathname);
+  pathRef.current = location.pathname;
+  const inPortal = location.pathname.startsWith('/portal');
+  const onSwitchTabRef = useRef(onSwitchTab);
+  onSwitchTabRef.current = onSwitchTab;
+
+  // Same Vapi assistant everywhere on the site, just with the site map,
+  // navigation tools and an up-to-date system prompt layered on top so it
+  // always knows where the visitor is and what it can do for them.
+  const buildAssistantOverrides = () => ({
+    firstMessage: inPortal
+      ? "Hi, I'm your CANLAB Academy guide. Want me to take you to a tab or answer something about the program?"
+      : "Hey, I'm your CANLAB Creator Academy guide. I can show you around the site or answer questions — what would you like to do?",
+    model: {
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'system' as const, content: buildSiteKnowledge({ currentPath: pathRef.current, inPortal }) }],
+      tools: buildTools(inPortal),
+    },
+  });
 
   const vapiRef = useRef<Vapi | null>(null);
   const autoStartedRef = useRef(false);
@@ -167,6 +237,55 @@ export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean 
       ]);
       setLiveCaption(null);
     };
+    const onToolCalls = async (message: unknown) => {
+      const data = message as { type?: string; toolCallList?: Array<{ function?: { name?: string; arguments?: unknown } }> };
+      if (data.type !== 'tool-calls' || !Array.isArray(data.toolCallList)) return;
+      for (const call of data.toolCallList) {
+        const name = call.function?.name as string;
+        const raw = call.function?.arguments;
+        const args = (typeof raw === 'string' ? JSON.parse(raw || '{}') : raw ?? {}) as Record<string, string>;
+        let result = `Unknown action ${name}.`;
+        try {
+          switch (name) {
+            case 'navigate': {
+              const to = VOICE_ROUTES[args.page as VoiceRoute];
+              result = to ? (navigate(to), `Opened ${args.page}.`) : `Unknown page ${args.page}.`;
+              break;
+            }
+            case 'scroll_to': {
+              if (pathRef.current !== '/') {
+                navigate('/');
+                window.setTimeout(() => flash(document.getElementById(args.id ?? '')), 300);
+              } else {
+                flash(document.getElementById(args.id ?? ''));
+              }
+              result = `Scrolled to ${args.id}.`;
+              break;
+            }
+            case 'switch_tab': {
+              if (onSwitchTabRef.current) {
+                onSwitchTabRef.current(args.tab as PortalTab);
+                result = `Switched to the ${args.tab} tab.`;
+              } else {
+                result = 'Tab switching is only available inside the creator portal.';
+              }
+              break;
+            }
+            case 'end_call':
+              window.setTimeout(() => vapiRef.current?.stop(), 1500);
+              result = 'Ending the call.';
+              break;
+          }
+        } catch (err) {
+          console.error('Voice agent tool error:', err);
+          result = `Could not complete that action.`;
+        }
+        vapiRef.current?.send({
+          type: 'add-message',
+          message: { role: 'system', content: `Action result: ${result} User is now on ${pathRef.current}.` },
+        });
+      }
+    };
     const onSpeechStart = () => setIsAssistantSpeaking(true);
     const onSpeechEnd = () => setIsAssistantSpeaking(false);
     const onVolumeLevel = (level: number) => setVolumeLevel(Math.max(0, Math.min(1, level)));
@@ -179,6 +298,7 @@ export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean 
     vapi.on('call-end', onCallEnd);
     vapi.on('error', onError);
     vapi.on('message', onMessage);
+    vapi.on('message', onToolCalls);
     vapi.on('speech-start', onSpeechStart);
     vapi.on('speech-end', onSpeechEnd);
     vapi.on('volume-level', onVolumeLevel);
@@ -190,6 +310,7 @@ export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean 
       vapi.removeListener('call-end', onCallEnd);
       vapi.removeListener('error', onError);
       vapi.removeListener('message', onMessage);
+      vapi.removeListener('message', onToolCalls);
       vapi.removeListener('speech-start', onSpeechStart);
       vapi.removeListener('speech-end', onSpeechEnd);
       vapi.removeListener('volume-level', onVolumeLevel);
@@ -227,7 +348,7 @@ export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean 
       setIsPanelOpen(true);
       setIsConnecting(true);
       setCallError(null);
-      return vapi.start(assistantId);
+      return vapi.start(assistantId, buildAssistantOverrides() as any);
     };
 
     beginCall().catch(() => {
@@ -260,7 +381,7 @@ export default function VoiceAgent({ autoStart = false }: { autoStart?: boolean 
     transcriptIdRef.current = 0;
 
     try {
-      await vapi.start(assistantId);
+      await vapi.start(assistantId, buildAssistantOverrides() as any);
     } catch (error) {
       console.error('Unable to start Vapi call:', error);
       setIsConnecting(false);

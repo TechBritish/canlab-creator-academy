@@ -5,6 +5,15 @@
   z-index: 10000;
 }
 
+/* Briefly highlights a section the voice agent scrolls to, so it's obvious
+   what it's pointing at. */
+.voice-agent-highlight {
+  outline: 3px solid rgba(165, 139, 255, .85);
+  outline-offset: 4px;
+  border-radius: 12px;
+  transition: outline-color .3s ease;
+}
+
 .voice-agent-mic {
   display: grid;
   width: 58px;
