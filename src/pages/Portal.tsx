@@ -32,9 +32,9 @@ const tierFor = (orders: number) =>
   : { tier: 'Starter', disc: '15%', next: 11 };
 
 const DASH_CLIPS = [
-  { h: 'What 99% purity looks like on paper', f: 'COA read', d: '0:28', g: ['#1B4A6B', '#0B1B2A'] },
-  { h: 'Ordered at 10am. Shipped at 2pm.', f: 'Unboxing', d: '0:34', g: ['#3A2E6B', '#140F26'] },
-  { h: '3 myths about research peptides', f: 'Myth vs fact', d: '0:41', g: ['#17504A', '#0A1C1A'] },
+  { h: 'Your REALISTIC guide to 30% body fat', f: 'Myth vs fact', d: '0:45', g: ['#1B4A6B', '#0B1B2A'] },
+  { h: 'Alpha-GPC: the real dosage research', f: 'COA read', d: '0:45', g: ['#3A2E6B', '#140F26'] },
+  { h: 'Artificial sweeteners: moderation is key', f: 'Myth vs fact', d: '0:45', g: ['#17504A', '#0A1C1A'] },
 ];
 
 function bg(g: string[]) {

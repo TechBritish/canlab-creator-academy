@@ -33,6 +33,16 @@ export default function ClipLibrary() {
         {visible.map((c) => (
           <div className="clip" key={c.h}>
             <div className="thumb" style={{ background: clipBg(c) }}>
+              <video
+                src={c.video}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
+                onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+              />
               <span className="dur">{c.d}</span>
               <span className="hk">{c.h}</span>
             </div>
@@ -55,7 +65,7 @@ export default function ClipLibrary() {
               <h3 style={{ marginTop: 6, fontSize: 22 }}>{brief.h}</h3>
             </div>
             <div className="actions">
-              <button className="btn sm" onClick={() => toast('Clip download starts here in the live build')}>Download clip</button>
+              <a className="btn sm" href={brief.video} download>Download clip</a>
               <button className="btn sm solid" onClick={() => copyCaption(brief.cap)}>
                 <Icon id="copy" strokeWidth={1.8} />Copy caption
               </button>
@@ -64,6 +74,7 @@ export default function ClipLibrary() {
           <p className="muted" style={{ marginTop: 12, fontSize: 14.5 }}>
             {brief.f} · best on {brief.p}. Add your own voice in the first 2 seconds and keep the research-use line.
           </p>
+          <video src={brief.video} controls style={{ width: '100%', maxWidth: 320, borderRadius: 12, marginTop: 12, display: 'block' }} />
           <pre>{brief.cap}</pre>
         </div>
       )}

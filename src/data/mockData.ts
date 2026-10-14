@@ -29,15 +29,15 @@ export type Clip = {
   d: string;
   g: [string, string];
   cap: string;
+  video: string;
 };
 
 export const CLIPS: Clip[] = [
-  { h: 'What 99% purity looks like on paper', f: 'COA read', p: 'TikTok', d: '0:28', g: ['#1B4A6B', '#0B1B2A'], cap: 'What does 99%+ purity actually look like on paper? A real COA, line by line. HPLC + mass-spec verified.\n\nFor laboratory and research use only. #ad #labtok' },
-  { h: 'Ordered at 10am. Shipped at 2pm.', f: 'Unboxing', p: 'Instagram', d: '0:34', g: ['#3A2E6B', '#140F26'], cap: 'Ordered at 10am, shipped same day. Packaging, labelling, paperwork, all of it.\n\nFor laboratory and research use only. Affiliate link in bio. #ad' },
-  { h: '3 myths about research peptides', f: 'Myth vs fact', p: 'TikTok', d: '0:41', g: ['#17504A', '#0A1C1A'], cap: 'Three things people get wrong about research peptides, and what the paperwork actually tells you.\n\nFor laboratory and research use only. #ad' },
-  { h: 'Inside a North American lab', f: 'Lab tour', p: 'YouTube Shorts', d: '0:52', g: ['#27415A', '#0C141C'], cap: 'Where North-American made research compounds come from. Quick tour.\n\nFor laboratory and research use only. #ad' },
-  { h: '"Is this legit?" How to check', f: 'Q&A', p: 'X', d: '0:30', g: ['#4A2C4F', '#160D18'], cap: "Most asked question in my comments: is this legit? Here's how to check any supplier's COA.\n\nFor laboratory and research use only. #ad" },
-  { h: 'Read a mass-spec chart in 30s', f: 'COA read', p: 'Instagram', d: '0:30', g: ['#1F4E63', '#0A161C'], cap: "You don't need a PhD to read this chart. 30 seconds.\n\nFor laboratory and research use only. #ad" },
+  { h: 'Your REALISTIC guide to 30% body fat', f: 'Myth vs fact', p: 'TikTok', d: '0:45', g: ['#1B4A6B', '#0B1B2A'], cap: "What 30% body fat actually looks like, and what the research says about getting it down safely.\n\nFor laboratory and research use only. #ad #labtok", video: '/clips/c1.mp4' },
+  { h: 'Alpha-GPC: the real dosage research', f: 'COA read', p: 'Instagram', d: '0:45', g: ['#3A2E6B', '#140F26'], cap: "Alpha-GPC dosage, explained from the research, not the hype.\n\nFor laboratory and research use only. Affiliate link in bio. #ad", video: '/clips/c2.mp4' },
+  { h: 'Artificial sweeteners: moderation is key', f: 'Myth vs fact', p: 'TikTok', d: '0:45', g: ['#17504A', '#0A1C1A'], cap: "What the research actually says about artificial sweeteners and moderation.\n\nFor laboratory and research use only. #ad", video: '/clips/c3.mp4' },
+  { h: 'Methylene blue & nicotine: athlete performance', f: 'Lab tour', p: 'YouTube Shorts', d: '0:45', g: ['#27415A', '#0C141C'], cap: "Cycling methylene blue and nicotine for athlete performance research. Here's what the data shows.\n\nFor laboratory and research use only. #ad", video: '/clips/c4.mp4' },
+  { h: 'Growth hormone & red light therapy for recovery', f: 'Q&A', p: 'X', d: '0:45', g: ['#4A2C4F', '#160D18'], cap: "Biohacking recovery research: growth hormone and red light therapy, what the studies say.\n\nFor laboratory and research use only. #ad", video: '/clips/c5.mp4' },
 ];
 
 export const clipBg = (c: Clip) =>

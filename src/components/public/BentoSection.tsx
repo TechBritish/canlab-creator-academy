@@ -27,9 +27,9 @@ export default function BentoSection() {
             <h3>Clip library</h3>
             <p>Pre-approved footage, hooks and captions every week.</p>
             <div className="reels">
-              <div className="reel" style={{ background: 'linear-gradient(160deg,#1B4A6B,#0B1B2A)' }}><span>99% purity on paper</span></div>
-              <div className="reel" style={{ background: 'linear-gradient(160deg,#3A2E6B,#140F26)' }}><span>Same-day unboxing</span></div>
-              <div className="reel" style={{ background: 'linear-gradient(160deg,#17504A,#0A1C1A)' }}><span>3 myths, busted</span></div>
+              <div className="reel" style={{ background: 'linear-gradient(160deg,#1B4A6B,#0B1B2A)' }}><span>30% body fat guide</span></div>
+              <div className="reel" style={{ background: 'linear-gradient(160deg,#3A2E6B,#140F26)' }}><span>Alpha-GPC dosage</span></div>
+              <div className="reel" style={{ background: 'linear-gradient(160deg,#17504A,#0A1C1A)' }}><span>Sweeteners, busted</span></div>
             </div>
           </div>
           <div className="tile t-earn">
