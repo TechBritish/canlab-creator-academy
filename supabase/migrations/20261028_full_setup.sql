@@ -48,8 +48,10 @@ create policy "admins update profiles" on profiles
   for update to authenticated using (is_admin());
 
 -- ---------- referral codes ----------
+-- security definer: the apply form runs as a signed-out visitor who can't see
+-- other profiles under RLS, so without it every "JASO" would pick JASO15 and clash.
 create or replace function gen_ref_code(p_full_name text)
-returns text language plpgsql as $$
+returns text language plpgsql security definer set search_path = public as $$
 declare
   base text;
   candidate text;
