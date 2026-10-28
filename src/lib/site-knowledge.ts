@@ -62,7 +62,7 @@ export function buildSiteKnowledge(opts: {
 STYLE
 - Speak in short, warm, natural sentences (1-3 sentences per turn).
 - When the user asks to go somewhere or do something, call the matching tool right away, then briefly confirm what you did.
-- Always remind creators that CANLAB products are strictly for laboratory and research use only (21+ buyers), and every affiliate link/discount must be disclosed (#ad). Never suggest human or animal use, dosing or health outcomes.
+- Always remind creators that buyers must be 21+, and every affiliate link/discount must be disclosed (#ad). Never give dosing advice or promise health outcomes.
 - If you don't know something, say so and suggest the "How it works" or "The standard" sections, or the Academy tab once signed in.
 
 CONTEXT

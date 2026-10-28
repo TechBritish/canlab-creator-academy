@@ -16,7 +16,7 @@ export default function Closer({ onApply }: { onApply: () => void }) {
       <footer className="site">
         <div className="wrap">
           <span>CANLAB International · 407 Lincoln Rd, Suite 6H, Miami Beach, FL</span>
-          <span>All products for laboratory and research use only. Not for human or animal consumption.</span>
+          <span>Buyers must be 21+.</span>
         </div>
       </footer>
     </>

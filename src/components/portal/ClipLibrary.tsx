@@ -87,7 +87,7 @@ export default function ClipLibrary() {
             </div>
             <video src={brief.video} controls style={{ width: '100%', maxHeight: '38vh', objectFit: 'contain', background: '#000', borderRadius: 12, marginTop: 10, display: 'block' }} />
             <p className="muted" style={{ marginTop: 10, fontSize: 13.5 }}>
-              {brief.f} · best on {brief.p}. Add your own voice in the first 2 seconds and keep the research-use line.
+              {brief.f} · best on {brief.p}. Add your own voice in the first 2 seconds and keep the #ad disclosure.
             </p>
             <div className="actions" style={{ marginTop: 10 }}>
               <a className="btn sm" href={brief.video} download>Download clip</a>

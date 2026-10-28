@@ -45,7 +45,7 @@ export default function ApplyForm() {
       return;
     }
     if (!ageRef.current!.checked || !ruoRef.current!.checked) {
-      setMsg({ type: 'err', text: 'Tick both boxes to apply. Agreeing to the research-use-only rule is a condition of joining.' });
+      setMsg({ type: 'err', text: 'Tick both boxes to apply. Agreeing to the content rules is a condition of joining.' });
       return;
     }
 
@@ -108,7 +108,7 @@ export default function ApplyForm() {
           <div className="field"><label htmlFor="a-handle">Handle or profile link</label><input id="a-handle" ref={handleRef} placeholder="@jordanlabnotes" aria-invalid={invalid === 'handle' || undefined} /></div>
           <div className="field"><label htmlFor="a-niche">What do you post about?</label><textarea id="a-niche" ref={nicheRef} placeholder="Lab life, biotech explainers and science news." /></div>
           <label className="check"><input type="checkbox" id="a-age" ref={ageRef} /> I am 21 or older.</label>
-          <label className="check"><input type="checkbox" id="a-ruo" ref={ruoRef} /> I understand CANLAB products are for research use only and I will follow the content rules.</label>
+          <label className="check"><input type="checkbox" id="a-ruo" ref={ruoRef} /> I have read and will follow the CANLAB content rules.</label>
           <button className="btn solid" type="submit" id="a-submit" disabled={submitting} style={{ width: '100%' }}>{submitting ? 'Submitting…' : 'Submit application'} <Icon id="arrow" className="i arrow" /></button>
           {msg && <div id="applyMsg" className={`msg ${msg.type}`} role="status" aria-live="polite">{msg.text}</div>}
         </form>

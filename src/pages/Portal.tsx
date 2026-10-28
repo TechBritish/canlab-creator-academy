@@ -322,7 +322,7 @@ export default function Portal() {
                   </button>
                 </div>
                 <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>
-                  Always pair it with #ad and "for research use only".
+                  Always pair it with #ad or "affiliate link".
                 </p>
               </div>
               <div className="card">

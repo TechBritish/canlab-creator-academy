@@ -57,7 +57,7 @@ export default function Submissions() {
       return;
     }
     if (!ok) {
-      toast('Add #ad and the research-use line first');
+      toast('Add #ad or the affiliate disclosure first');
       return;
     }
     if (!user) return;
@@ -185,7 +185,7 @@ export default function Submissions() {
           </div>
           <label className="check">
             <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} />
-            Post includes #ad and "for research use only".
+            Post includes #ad or "affiliate link".
           </label>
           <button className="btn solid" type="submit">Submit for review</button>
         </form>

@@ -61,7 +61,7 @@ export default function Hero({ onApply, onTour }: { onApply: () => void; onTour:
               <div className="ovl">
                 <div className="who"><i></i>@maya.benchside</div>
                 <p>Reading a real COA, line by line. HPLC + mass-spec verified.</p>
-                <span className="tagline">FOR RESEARCH USE ONLY · #AD</span>
+                <span className="tagline">#AD · AFFILIATE LINK</span>
               </div>
               <div className="progressbar"><i></i></div>
             </div>

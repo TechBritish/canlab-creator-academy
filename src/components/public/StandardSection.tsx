@@ -1,13 +1,13 @@
 import Icon from '../Icon';
 
 const DO = [
-  'Say "for laboratory and research use only" on every post',
+  'Follow the CANLAB content rules on every post',
   'Disclose your link with #ad or "affiliate link"',
   'Talk purity, testing, COAs, packaging and shipping speed',
   'Answer dosing questions with "I can\'t advise on that"',
 ];
 const DONT = [
-  'Suggest human or animal use, doses or protocols',
+  'Give dosing advice or share protocols',
   'Claim health, weight-loss, muscle or anti-ageing results',
   'Post before-and-after or injection footage',
   'Target anyone under 21',
@@ -19,8 +19,8 @@ export default function StandardSection() {
       <div className="wrap">
         <div className="head">
           <span className="label">The standard</span>
-          <h2>Research use only. <span className="serif">Every post, every time.</span></h2>
-          <p>CANLAB supplies compounds for laboratory research. That shapes what creators can say, and the Academy makes it second nature.</p>
+          <h2>Compliant content. <span className="serif">Every post, every time.</span></h2>
+          <p>CANLAB supplies high-purity, lab-tested compounds. That shapes what creators can say, and the Academy makes it second nature.</p>
         </div>
         <div className="standard">
           <div className="col do">
