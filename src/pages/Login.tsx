@@ -28,8 +28,15 @@ export default function Login() {
     }
 
     const profile = await refreshProfile(data.user.id);
+    if (profile?.role === 'admin') {
+      setLoading(false);
+      navigate('/admin', { replace: true });
+      return;
+    }
+    // Creators who haven't signed the Partner Agreement yet go there first.
+    const { data: agreement } = await supabase.from('partner_agreements').select('id').eq('user_id', data.user.id).limit(1).maybeSingle();
     setLoading(false);
-    navigate(profile?.role === 'admin' ? '/admin' : '/portal', { replace: true });
+    navigate(agreement ? '/portal' : '/agreement', { replace: true });
   };
 
   return (

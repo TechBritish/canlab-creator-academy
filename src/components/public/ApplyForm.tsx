@@ -4,9 +4,11 @@ import Icon from '../Icon';
 import { supabase } from '../../lib/supabaseClient';
 
 const FAQ = [
-  { q: 'Who is this for?', a: 'Creators aged 21+ with 1k to 100k followers who post about science, labs, biotech or product reviews.' },
-  { q: 'Does it cost anything?', a: 'No. Training, clips and the community are free for accepted creators.' },
-  { q: 'What do I get?', a: 'A member discount on your own CANLAB orders. The more orders your link drives, the bigger it gets. Your tier updates on the 1st of each month.' },
+  { q: 'Who is this for?', a: 'US-based creators aged 18+ with 500 to 3,500 genuine followers who post about science, labs, biotech or product reviews.' },
+  { q: 'Does it cost anything?', a: 'No. There is no monthly fee. Training, reels, clips and the community are free for accepted creators.' },
+  { q: 'How does commission work?', a: 'It is based on your monthly eligible net sales. Under $10k: no commission, but product at 60% off. $10k–$49,999: 10%. $50k–$149,999: 15%. $150k+: 20%. Once you hit a tier it applies to the whole month.' },
+  { q: 'How and when am I paid?', a: 'Monthly, on the 30th, after a 30-day refund hold. Balances under $75 roll over. You sign the Partner Agreement online and complete a W-9 and payout details securely before your first payout.' },
+  { q: 'What do I post?', a: '4 posts and 2 reels a week. The reels are supplied by the Academy. If we send you a promo package, start with an unboxing post, then regular progress updates.' },
   { q: 'Do I have to use the clip library?', a: 'No. You can film your own content. Every post goes through the same compliance review.' },
 ];
 
@@ -73,8 +75,12 @@ export default function ApplyForm() {
       return;
     }
 
-    setMsg({ type: 'ok', text: 'Application received. Redirecting you to the portal…' });
-    setTimeout(() => navigate('/portal'), 1200);
+    if (!data.session) {
+      setMsg({ type: 'ok', text: 'Application received. Check your email to confirm your address, then log in to sign your Partner Agreement.' });
+      return;
+    }
+    setMsg({ type: 'ok', text: 'Application received. Next: sign your Partner Agreement…' });
+    setTimeout(() => navigate('/agreement'), 1200);
   };
 
   return (
@@ -103,11 +109,11 @@ export default function ApplyForm() {
           <div className="field"><label htmlFor="a-pass">Password</label><input id="a-pass" ref={passRef} type="password" autoComplete="new-password" aria-invalid={invalid === 'password' || undefined} /></div>
           <div className="row2">
             <div className="field"><label htmlFor="a-plat">Main platform</label><select id="a-plat" ref={platRef} defaultValue=""><option value="" disabled>Select platform</option><option>TikTok</option><option>Instagram</option><option>YouTube Shorts</option><option>X</option><option>LinkedIn</option><option>Facebook</option></select></div>
-            <div className="field"><label htmlFor="a-foll">Followers</label><select id="a-foll" ref={follRef} defaultValue=""><option value="" disabled>Select range</option><option>1k–10k</option><option>10k–50k</option><option>50k–100k</option></select></div>
+            <div className="field"><label htmlFor="a-foll">Followers</label><select id="a-foll" ref={follRef} defaultValue=""><option value="" disabled>Select range</option><option>500–1,000</option><option>1,000–2,000</option><option>2,000–3,500</option></select></div>
           </div>
           <div className="field"><label htmlFor="a-handle">Handle or profile link</label><input id="a-handle" ref={handleRef} placeholder="@jordanlabnotes" aria-invalid={invalid === 'handle' || undefined} /></div>
           <div className="field"><label htmlFor="a-niche">What do you post about?</label><textarea id="a-niche" ref={nicheRef} placeholder="Lab life, biotech explainers and science news." /></div>
-          <label className="check"><input type="checkbox" id="a-age" ref={ageRef} /> I am 21 or older.</label>
+          <label className="check"><input type="checkbox" id="a-age" ref={ageRef} /> I am 18 or older and live in the United States.</label>
           <label className="check"><input type="checkbox" id="a-ruo" ref={ruoRef} /> I have read and will follow the CANLAB content rules.</label>
           <button className="btn solid" type="submit" id="a-submit" disabled={submitting} style={{ width: '100%' }}>{submitting ? 'Submitting…' : 'Submit application'} <Icon id="arrow" className="i arrow" /></button>
           {msg && <div id="applyMsg" className={`msg ${msg.type}`} role="status" aria-live="polite">{msg.text}</div>}

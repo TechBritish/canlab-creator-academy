@@ -37,7 +37,7 @@ export default function Nav() {
         <div className="navlinks">
           <a href="#how" onClick={(e) => { e.preventDefault(); goto('how'); }}>How it works</a>
           <a href="#inside" onClick={(e) => { e.preventDefault(); goto('inside'); }}>The portal</a>
-          <a href="#earn" onClick={(e) => { e.preventDefault(); goto('earn'); }}>Rewards</a>
+          <a href="#earn" onClick={(e) => { e.preventDefault(); goto('earn'); }}>Commission</a>
           <a href="#standard" onClick={(e) => { e.preventDefault(); goto('standard'); }}>The standard</a>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -60,7 +60,7 @@ export default function Nav() {
       <div className="mnav" id="mnav">
         <a href="#how" onClick={(e) => { e.preventDefault(); goto('how'); }}>How it works</a>
         <a href="#inside" onClick={(e) => { e.preventDefault(); goto('inside'); }}>The portal</a>
-        <a href="#earn" onClick={(e) => { e.preventDefault(); goto('earn'); }}>Rewards</a>
+        <a href="#earn" onClick={(e) => { e.preventDefault(); goto('earn'); }}>Commission</a>
         <a href="#standard" onClick={(e) => { e.preventDefault(); goto('standard'); }}>The standard</a>
         <Link to="/login" onClick={close}>Log in to the portal</Link>
       </div>

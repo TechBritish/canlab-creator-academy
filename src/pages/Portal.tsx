@@ -4,6 +4,7 @@ import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabaseClient';
 import { COUNTED_ORDER_STATUSES } from '../lib/orderStatus';
 import { MODS } from '../data/mockData';
+import { COMMISSION_TIERS, tierForSales } from '../lib/program';
 import Icon from '../components/Icon';
 import Academy from '../components/portal/Academy';
 import ClipLibrary from '../components/portal/ClipLibrary';
@@ -26,10 +27,6 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'comm', label: 'Community', icon: 'users' },
 ];
 
-const tierFor = (orders: number) =>
-  orders >= 51 ? { tier: 'Elite', disc: '35%', next: null as number | null }
-  : orders >= 11 ? { tier: 'Pro', disc: '25%', next: 51 }
-  : { tier: 'Starter', disc: '15%', next: 11 };
 
 const DASH_CLIPS = [
   { h: 'Your REALISTIC guide to 30% body fat', f: 'Myth vs fact', d: '0:45', g: ['#1B4A6B', '#0B1B2A'] },
@@ -56,6 +53,7 @@ export default function Portal() {
   const [clicks30d, setClicks30d] = useState(0);
   const [orders30d, setOrders30d] = useState(0);
   const [monthOrders, setMonthOrders] = useState(0);
+  const [monthSales, setMonthSales] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -81,7 +79,7 @@ export default function Portal() {
           .gte('created_at', since.toISOString()),
         supabase
           .from('orders')
-          .select('id')
+          .select('id, amount')
           .eq('user_id', user.id)
           .in('status', COUNTED_ORDER_STATUSES)
           .gte('created_at', monthStart.toISOString()),
@@ -91,6 +89,7 @@ export default function Portal() {
       setClicks30d((recentClicks ?? []).length);
       setOrders30d((recentOrders ?? []).length);
       setMonthOrders((thisMonthOrders ?? []).length);
+      setMonthSales((thisMonthOrders ?? []).reduce((s: number, o: { amount: number }) => s + (Number(o.amount) || 0), 0));
     })();
     return () => {
       active = false;
@@ -98,8 +97,10 @@ export default function Portal() {
   }, [user, tab, profile?.ref_code]);
 
   const trainingPct = Math.round((lessonsDone / TOTAL_LESSONS) * 100);
-  const { tier, disc, next } = tierFor(monthOrders);
-  const tierPct = next ? Math.min(100, Math.round((monthOrders / next) * 100)) : 100;
+  const { idx: tierIdx, tier, commission } = tierForSales(monthSales);
+  const nextTier = COMMISSION_TIERS[tierIdx + 1];
+  const tierPct = nextTier ? Math.min(100, Math.round((monthSales / nextTier.min) * 100)) : 100;
+  const usd = (n: number) => `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
   let nextLessonLabel = 'All lessons complete';
   {
@@ -292,9 +293,9 @@ export default function Portal() {
                 <div className="d" style={{ color: 'var(--slate)' }}>{monthOrders} this month</div>
               </div>
               <div className="card kpi">
-                <span className="label">Your discount</span>
-                <div className="v">{disc} off</div>
-                <div className="d" style={{ color: 'var(--slate)' }}>{tier} tier</div>
+                <span className="label">Commission · this month</span>
+                <div className="v">{tier.rate ? usd(commission) : '60% off'}</div>
+                <div className="d" style={{ color: 'var(--slate)' }}>{tier.rate ? `${Math.round(tier.rate * 100)}% of ${usd(monthSales)}` : `${usd(monthSales)} sales · 10% at $10k`}</div>
               </div>
               <div className="card kpi">
                 <span className="label">Training</span>
@@ -309,8 +310,8 @@ export default function Portal() {
                 <p className="muted" style={{ marginTop: 4 }}>{nextLessonLabel}</p>
                 <div style={{ marginTop: 22, display: 'grid', gap: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
-                    <span>Tier progress{next ? `: ${tier} to next tier` : ': Elite (max tier)'}</span>
-                    <span className="mono muted">{monthOrders}{next ? ` / ${next} orders` : ' orders'}</span>
+                    <span>Tier progress{nextTier ? `: next ${Math.round(nextTier.rate * 100)}% commission` : ': 20% (top tier)'}</span>
+                    <span className="mono muted">{usd(monthSales)}{nextTier ? ` / ${usd(nextTier.min)}` : ''}</span>
                   </div>
                   <div className="bar"><i style={{ width: `${tierPct}%` }}></i></div>
                 </div>

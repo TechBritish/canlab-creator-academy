@@ -9,7 +9,7 @@ export default function Hero({ onApply, onTour }: { onApply: () => void; onTour:
         <div className="h-copy">
           <span className="pill"><b>Cohort 01</b><span className="live"></span> Now accepting creators</span>
           <h1>Content with <span className="serif grad">research-grade</span> standards.</h1>
-          <p className="lead">The CANLAB Creator Academy trains micro-creators to post about high-purity research compounds the right way, then rewards them with member pricing that grows with every order they drive.</p>
+          <p className="lead">The CANLAB Creator Academy trains micro-creators to post about high-purity research compounds the right way, then pays them commission on the sales they drive. Approved creators also get 60% off the approved catalog.</p>
           <div className="cta">
             <button className="btn solid" id="hero-apply" onClick={onApply}>
               Apply to the Academy <Icon id="arrow" className="i arrow" />
@@ -67,8 +67,8 @@ export default function Hero({ onApply, onTour }: { onApply: () => void; onTour:
             </div>
           </div>
           <div className="chip c1"><span className="ic" style={{ background: 'rgba(111,224,168,.14)', color: 'var(--good)' }}><Icon id="shield" /></span><span><b>Compliance passed</b><small>5/5 · certified</small></span></div>
-          <div className="chip c2"><span className="ic" style={{ background: 'rgba(140,200,255,.14)', color: 'var(--ice)' }}><Icon id="wallet" /></span><span><b>25% member rate</b><small>Unlocked · Pro tier</small></span></div>
-          <div className="chip c3"><span className="ic" style={{ background: 'rgba(165,139,255,.16)', color: 'var(--violet)' }}><Icon id="trend" /></span><span><b>37 orders</b><small>This month · Pro tier</small></span></div>
+          <div className="chip c2"><span className="ic" style={{ background: 'rgba(140,200,255,.14)', color: 'var(--ice)' }}><Icon id="wallet" /></span><span><b>60% creator discount</b><small>Approved creators</small></span></div>
+          <div className="chip c3"><span className="ic" style={{ background: 'rgba(165,139,255,.16)', color: 'var(--violet)' }}><Icon id="trend" /></span><span><b>10% commission</b><small>$10k+ month · up to 20%</small></span></div>
         </div>
       </div>
     </header>

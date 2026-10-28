@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth, type Profile } from '../context/AuthContext';
 import { COUNTED_ORDER_STATUSES } from '../lib/orderStatus';
 import Icon from '../components/Icon';
+import { tierForSales } from '../lib/program';
 
 type SubmissionRow = {
   id: string;
@@ -22,17 +23,37 @@ type SubmissionRow = {
 type OrderAgg = { user_id: string; amount: number; created_at: string };
 type ClickAgg = { ref_code: string };
 
-type AdminTab = 'overview' | 'creators' | 'applications' | 'submissions' | 'orders';
+type AgreementRow = {
+  id: number;
+  user_id: string;
+  agreement_version: string;
+  legal_name: string;
+  email: string;
+  country_state: string;
+  handles: string;
+  follower_count: string;
+  compensation_option: string;
+  signature_name: string;
+  signed_at: string;
+  w9_received: boolean;
+  payout_setup: boolean;
+};
+
+type AdminTab = 'overview' | 'creators' | 'applications' | 'agreements' | 'submissions' | 'orders';
 
 const TABS: { id: AdminTab; label: string; icon: string }[] = [
   { id: 'overview', label: 'Overview', icon: 'grid' },
   { id: 'creators', label: 'Creators', icon: 'users' },
   { id: 'applications', label: 'Applications', icon: 'plus' },
+  { id: 'agreements', label: 'Agreements', icon: 'shield' },
   { id: 'submissions', label: 'Submissions', icon: 'upload' },
   { id: 'orders', label: 'Log order', icon: 'wallet' },
 ];
 
-const tierFor = (orders: number) => (orders >= 51 ? 'Elite' : orders >= 11 ? 'Pro' : 'Starter');
+const tierFor = (sales: number) => {
+  const { tier } = tierForSales(sales);
+  return tier.rate ? `${Math.round(tier.rate * 100)}% commission` : '60% off';
+};
 const money = (n: number) => `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 export default function Admin() {
@@ -57,6 +78,20 @@ export default function Admin() {
   const [allOrders, setAllOrders] = useState<OrderAgg[]>([]);
   const [allClicks, setAllClicks] = useState<ClickAgg[]>([]);
   const [certifiedCount, setCertifiedCount] = useState(0);
+  const [agreements, setAgreements] = useState<AgreementRow[]>([]);
+  const [agreementsLoading, setAgreementsLoading] = useState(true);
+
+  const loadAgreements = async () => {
+    setAgreementsLoading(true);
+    const { data } = await supabase.from('partner_agreements').select('*').order('signed_at', { ascending: false });
+    setAgreements((data as AgreementRow[]) ?? []);
+    setAgreementsLoading(false);
+  };
+
+  const toggleAgreementFlag = async (id: number, field: 'w9_received' | 'payout_setup', value: boolean) => {
+    setAgreements((list) => list.map((a) => (a.id === id ? { ...a, [field]: value } : a)));
+    await supabase.from('partner_agreements').update({ [field]: value }).eq('id', id);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -94,6 +129,7 @@ export default function Admin() {
 
   useEffect(() => {
     load();
+    loadAgreements();
     loadSubs();
     loadOverview();
   }, []);
@@ -141,7 +177,7 @@ export default function Admin() {
           id: r.id,
           name: r.full_name,
           platform: r.platform ?? '—',
-          tier: tierFor(creatorOrders.length),
+          tier: tierFor(revenue),
           clicks: clicksCount,
           orders: creatorOrders.length,
           revenue,
@@ -168,7 +204,7 @@ export default function Admin() {
       revenue,
       clicksCount,
       conv,
-      tier: tierFor(creatorOrders.length),
+      tier: tierFor(revenue),
     };
   }, [selectedCreatorId, rows, allOrders, clicksByRef]);
 
@@ -248,6 +284,7 @@ export default function Admin() {
     overview: 'Programme overview',
     creators: 'Current creators',
     applications: 'New applications',
+    agreements: 'Signed partner agreements',
     submissions: 'Submission review',
     orders: 'Log an order',
   };
@@ -555,6 +592,42 @@ export default function Admin() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'agreements' && (
+          <>
+            {agreementsLoading ? (
+              <p className="muted" style={{ marginTop: 24 }}>Loading…</p>
+            ) : agreements.length === 0 ? (
+              <p className="muted" style={{ marginTop: 24 }}>No signed agreements yet. Creators sign at /agreement after applying.</p>
+            ) : (
+              <div className="card tbl" style={{ marginTop: 24 }}>
+                <table className="data">
+                  <thead>
+                    <tr>
+                      <th>Signed</th><th>Legal name</th><th>Email</th><th>State</th><th>Handles</th>
+                      <th className="r">Followers</th><th>Signature</th><th>W-9</th><th>Payout set up</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agreements.map((a) => (
+                      <tr key={a.id}>
+                        <td>{new Date(a.signed_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                        <td>{a.legal_name}</td>
+                        <td>{a.email}</td>
+                        <td>{a.country_state.replace('United States · ', '')}</td>
+                        <td>{a.handles}</td>
+                        <td className="r">{a.follower_count}</td>
+                        <td><i>{a.signature_name}</i><div className="muted" style={{ fontSize: 12 }}>{a.agreement_version}</div></td>
+                        <td><input type="checkbox" checked={a.w9_received} onChange={(e) => toggleAgreementFlag(a.id, 'w9_received', e.target.checked)} aria-label={`W-9 received for ${a.legal_name}`} /></td>
+                        <td><input type="checkbox" checked={a.payout_setup} onChange={(e) => toggleAgreementFlag(a.id, 'payout_setup', e.target.checked)} aria-label={`Payout set up for ${a.legal_name}`} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </>

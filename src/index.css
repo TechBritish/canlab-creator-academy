@@ -172,7 +172,7 @@ input[type=range]:focus-visible{outline:2px solid var(--ice);outline-offset:8px}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--frost);border:5px solid var(--void);box-shadow:0 0 0 1px var(--ice),0 4px 14px rgba(140,200,255,.5);cursor:grab}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--frost);border:4px solid var(--void);box-shadow:0 0 0 1px var(--ice)}
 .result{font-size:clamp(56px,7vw,96px);font-weight:600;letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums}
-.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .tierb{border:1px solid var(--line);border-radius:16px;padding:14px;transition:all .3s var(--ease)}
 .tierb b{display:block;font-size:22px;font-weight:600}
 .tierb small{color:var(--slate);font-size:12.5px}
@@ -357,7 +357,7 @@ table.data th{text-align:left;font-family:var(--mono);font-weight:400;font-size:
 table.data td{padding:14px;border-bottom:1px solid var(--line);vertical-align:middle}
 table.data tr:last-child td{border-bottom:0}
 table.data .r{text-align:right;font-variant-numeric:tabular-nums}
-.ladder{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
 .ladder div{border:1px solid var(--line);border-radius:16px;padding:18px;font-size:13.5px;color:var(--slate)}
 .ladder b{display:block;font-size:28px;font-weight:600;color:var(--frost);letter-spacing:-.02em}
 .ladder .on{border-color:var(--ice);background:rgba(140,200,255,.07)}

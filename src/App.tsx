@@ -8,10 +8,11 @@ import PublicPage from './pages/PublicPage';
 import Login from './pages/Login';
 import Portal from './pages/Portal';
 import Admin from './pages/Admin';
+import Agreement from './pages/Agreement';
 
 function AppShell() {
   const { pathname } = useLocation();
-  const showPublicNav = pathname === '/' || pathname === '/login';
+  const showPublicNav = pathname === '/' || pathname === '/login' || pathname === '/agreement';
 
   return (
     <>
@@ -25,6 +26,14 @@ function AppShell() {
           element={
             <ProtectedRoute role="creator">
               <Portal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agreement"
+          element={
+            <ProtectedRoute>
+              <Agreement />
             </ProtectedRoute>
           }
         />

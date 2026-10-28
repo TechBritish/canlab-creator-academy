@@ -33,9 +33,9 @@ export default function BentoSection() {
             </div>
           </div>
           <div className="tile t-earn">
-            <span className="label">Member rate</span>
-            <div className="big">25% off</div>
-            <p style={{ fontSize: 13.5 }}>Pro tier · 14 orders to Elite</p>
+            <span className="label">Commission</span>
+            <div className="big">10%</div>
+            <p style={{ fontSize: 13.5 }}>$32k this month · $18k to 15%</p>
             <div className="spark">
               <svg viewBox="0 0 200 70" preserveAspectRatio="none">
                 <defs>
@@ -59,7 +59,7 @@ export default function BentoSection() {
           <div className="tile t-shield">
             <span className="ico" style={{ background: 'rgba(111,224,168,.1)', color: 'var(--good)' }}><Icon id="shield" strokeWidth={1.8} /></span>
             <h3>Reviewed before it counts</h3>
-            <p>Every post gets a compliance check. Clean posts count toward your tier.</p>
+            <p>Every post gets a compliance check. Clean posts keep your partnership in good standing.</p>
           </div>
         </div>
       </div>
