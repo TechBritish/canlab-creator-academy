@@ -75,6 +75,12 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
   const signature = req.headers.get('x-wc-webhook-signature');
 
+  // WooCommerce sends an unsigned "webhook_id=<n>" ping when a webhook is
+  // saved; acknowledge it so Woo doesn't flag the delivery URL as failing.
+  if (!signature && /^webhook_id=\d+$/.test(rawBody.trim())) {
+    return new Response('ok (ping)', { status: 200 });
+  }
+
   if (!(await verifySignature(rawBody, signature))) {
     return new Response('Invalid signature', { status: 401 });
   }
