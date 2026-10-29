@@ -21,6 +21,7 @@ type AuthContextValue = {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  profileLoading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: (userId?: string) => Promise<Profile | null>;
 };
@@ -31,9 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const loadProfile = async (userId: string): Promise<Profile | null> => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    setProfileLoading(true);
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    setProfileLoading(false);
+    // A failed request (e.g. one fired before the new session was attached)
+    // must not wipe a profile another call already loaded.
+    if (error) return null;
     const loadedProfile = (data as Profile | null) ?? null;
     setProfile(loadedProfile);
     return loadedProfile;
@@ -51,7 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       if (newSession?.user) {
-        loadProfile(newSession.user.id);
+        // Defer: calling Supabase inside this callback can run before the
+        // auth lock is released and come back without the user's token.
+        const id = newSession.user.id;
+        setTimeout(() => loadProfile(id), 0);
       } else {
         setProfile(null);
       }
@@ -75,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user: session?.user ?? null, session, profile, loading, signOut, refreshProfile }}
+      value={{ user: session?.user ?? null, session, profile, loading, profileLoading, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

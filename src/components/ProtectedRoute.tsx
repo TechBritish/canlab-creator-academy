@@ -9,9 +9,9 @@ export default function ProtectedRoute({
   children: ReactNode;
   role?: 'creator' | 'admin';
 }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
 
-  if (loading) {
+  if (loading || (user && !profile && profileLoading)) {
     return (
       <div className="wrap" style={{ paddingBlock: 100, textAlign: 'center' }}>
         <p className="muted">Loading…</p>
