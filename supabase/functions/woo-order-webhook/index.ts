@@ -24,6 +24,10 @@ type WooOrder = {
   id: number;
   status: string;
   total: string;
+  total_tax?: string;
+  shipping_total?: string;
+  billing?: { email?: string };
+  refunds?: { total: string }[];
   meta_data?: { key: string; value: unknown }[];
   coupon_lines?: { code: string }[];
 };
@@ -40,6 +44,17 @@ async function verifySignature(rawBody: string, signatureHeader: string | null) 
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(rawBody));
   const computed = btoa(String.fromCharCode(...new Uint8Array(sig)));
   return computed === signatureHeader;
+}
+
+// Eligible net sales per the Partner Agreement (s.4): collected revenue less
+// discounts (already out of Woo's total), refunds, taxes and shipping.
+function eligibleNetSales(order: WooOrder): number {
+  const total = Number(order.total) || 0;
+  const tax = Number(order.total_tax) || 0;
+  const shipping = Number(order.shipping_total) || 0;
+  // Woo reports refunds as negative totals.
+  const refunded = (order.refunds ?? []).reduce((s, r) => s + Math.abs(Number(r.total) || 0), 0);
+  return Math.max(0, Math.round((total - tax - shipping - refunded) * 100) / 100);
 }
 
 function extractRefCode(order: WooOrder): string | null {
@@ -84,7 +99,7 @@ Deno.serve(async (req) => {
 
   const { data: creator } = await admin
     .from('profiles')
-    .select('id')
+    .select('id, email')
     .eq('ref_code', refCode)
     .maybeSingle();
 
@@ -92,13 +107,18 @@ Deno.serve(async (req) => {
     return new Response('ok (unknown ref_code)', { status: 200 });
   }
 
+  const buyer = order.billing?.email?.trim().toLowerCase();
+  const isSelfPurchase = !!buyer && buyer === String(creator.email ?? '').trim().toLowerCase();
+
   const { error } = await admin.from('orders').upsert(
     {
       woo_order_id: order.id,
       user_id: creator.id,
       ref_code: refCode,
-      amount: Number(order.total) || 0,
-      status: order.status,
+      amount: eligibleNetSales(order),
+      // A creator's own orders never earn commission; storing them under a
+      // status the portal doesn't count keeps them visible but excluded.
+      status: isSelfPurchase ? 'self-purchase' : order.status,
     },
     { onConflict: 'woo_order_id' }
   );
