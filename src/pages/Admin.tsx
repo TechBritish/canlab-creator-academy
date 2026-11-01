@@ -39,12 +39,31 @@ type AgreementRow = {
   payout_setup: boolean;
 };
 
-type AdminTab = 'overview' | 'creators' | 'applications' | 'agreements' | 'submissions' | 'orders';
+type ProspectRow = {
+  id: number;
+  platform: string;
+  handle: string;
+  name: string | null;
+  profile_url: string | null;
+  followers: number | null;
+  median_views: number | null;
+  engagement_rate: number | null;
+  content_tags: string | null;
+  niche_fit: string | null;
+  status: string;
+  notes: string | null;
+  contacted_at: string | null;
+};
+
+const PROSPECT_STATUSES = ['New', 'Contacted', 'Replied', 'Applied', 'Not interested', 'Not a fit'] as const;
+
+type AdminTab = 'overview' | 'creators' | 'applications' | 'prospects' | 'agreements' | 'submissions' | 'orders';
 
 const TABS: { id: AdminTab; label: string; icon: string }[] = [
   { id: 'overview', label: 'Overview', icon: 'grid' },
   { id: 'creators', label: 'Creators', icon: 'users' },
   { id: 'applications', label: 'Applications', icon: 'plus' },
+  { id: 'prospects', label: 'Prospects', icon: 'trend' },
   { id: 'agreements', label: 'Agreements', icon: 'shield' },
   { id: 'submissions', label: 'Submissions', icon: 'upload' },
   { id: 'orders', label: 'Log order', icon: 'wallet' },
@@ -80,6 +99,26 @@ export default function Admin() {
   const [certifiedCount, setCertifiedCount] = useState(0);
   const [agreements, setAgreements] = useState<AgreementRow[]>([]);
   const [agreementsLoading, setAgreementsLoading] = useState(true);
+  const [prospects, setProspects] = useState<ProspectRow[]>([]);
+  const [prospectsLoading, setProspectsLoading] = useState(true);
+  const [prospectStatus, setProspectStatus] = useState<string>('New');
+  const [prospectFit, setProspectFit] = useState<string>('Strong');
+
+  const loadProspects = async () => {
+    setProspectsLoading(true);
+    const { data } = await supabase
+      .from('prospects')
+      .select('id, platform, handle, name, profile_url, followers, median_views, engagement_rate, content_tags, niche_fit, status, notes, contacted_at')
+      .order('engagement_rate', { ascending: false });
+    setProspects((data as ProspectRow[]) ?? []);
+    setProspectsLoading(false);
+  };
+
+  const updateProspect = async (id: number, patch: Partial<ProspectRow>) => {
+    const stamped = { ...patch, updated_at: new Date().toISOString(), ...(patch.status === 'Contacted' ? { contacted_at: new Date().toISOString() } : {}) };
+    setProspects((list) => list.map((p) => (p.id === id ? { ...p, ...stamped } : p)));
+    await supabase.from('prospects').update(stamped).eq('id', id);
+  };
 
   const loadAgreements = async () => {
     setAgreementsLoading(true);
@@ -130,6 +169,7 @@ export default function Admin() {
   useEffect(() => {
     load();
     loadAgreements();
+    loadProspects();
     loadSubs();
     loadOverview();
   }, []);
@@ -284,6 +324,7 @@ export default function Admin() {
     overview: 'Programme overview',
     creators: 'Current creators',
     applications: 'New applications',
+    prospects: 'Creator prospects',
     agreements: 'Signed partner agreements',
     submissions: 'Submission review',
     orders: 'Log an order',
@@ -592,6 +633,73 @@ export default function Admin() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'prospects' && (
+          <>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 20, alignItems: 'center' }}>
+              <select value={prospectStatus} onChange={(e) => setProspectStatus(e.target.value)} aria-label="Filter by status">
+                <option value="All">All statuses</option>
+                {PROSPECT_STATUSES.map((s) => (
+                  <option key={s} value={s}>{s} ({prospects.filter((p) => p.status === s).length})</option>
+                ))}
+              </select>
+              <select value={prospectFit} onChange={(e) => setProspectFit(e.target.value)} aria-label="Filter by niche fit">
+                <option value="All">Any niche fit</option>
+                <option value="Strong">Strong fit</option>
+                <option value="Possible">Possible fit</option>
+                <option value="Weak">Weak fit</option>
+              </select>
+              <span className="muted" style={{ fontSize: 13 }}>
+                US TikTok creators, 500–3,500 followers. Send a short personal DM with #ad-compliant wording, then update the status.
+              </span>
+            </div>
+            {prospectsLoading ? (
+              <p className="muted" style={{ marginTop: 24 }}>Loading…</p>
+            ) : (
+              <div className="card tbl" style={{ marginTop: 16 }}>
+                <table className="data">
+                  <thead>
+                    <tr>
+                      <th>Creator</th><th className="r">Followers</th><th className="r">Median views</th><th className="r">Engagement</th>
+                      <th>Tags</th><th>Fit</th><th>Status</th><th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prospects
+                      .filter((p) => (prospectStatus === 'All' || p.status === prospectStatus) && (prospectFit === 'All' || p.niche_fit === prospectFit))
+                      .map((p) => (
+                        <tr key={p.id}>
+                          <td>
+                            <a href={p.profile_url ?? '#'} target="_blank" rel="noreferrer">@{p.handle}</a>
+                            <div className="muted" style={{ fontSize: 12 }}>{p.name}</div>
+                          </td>
+                          <td className="r">{p.followers?.toLocaleString('en-US')}</td>
+                          <td className="r">{p.median_views?.toLocaleString('en-US')}</td>
+                          <td className="r">{p.engagement_rate != null ? `${p.engagement_rate}%` : '—'}</td>
+                          <td style={{ fontSize: 12 }}>{p.content_tags}</td>
+                          <td>{p.niche_fit}</td>
+                          <td>
+                            <select value={p.status} onChange={(e) => updateProspect(p.id, { status: e.target.value })} aria-label={`Status for ${p.handle}`}>
+                              {PROSPECT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </td>
+                          <td>
+                            <input
+                              defaultValue={p.notes ?? ''}
+                              placeholder="Add a note"
+                              onBlur={(e) => e.target.value !== (p.notes ?? '') && updateProspect(p.id, { notes: e.target.value })}
+                              aria-label={`Notes for ${p.handle}`}
+                              style={{ minWidth: 160 }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </>
