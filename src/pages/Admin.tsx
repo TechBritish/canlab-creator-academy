@@ -53,6 +53,7 @@ type ProspectRow = {
   status: string;
   notes: string | null;
   contacted_at: string | null;
+  email: string | null;
 };
 
 const PROSPECT_STATUSES = ['New', 'Contacted', 'Replied', 'Applied', 'Not interested', 'Not a fit'] as const;
@@ -105,6 +106,7 @@ export default function Admin() {
   const [prospectFit, setProspectFit] = useState<string>('All');
   const [prospectPlatform, setProspectPlatform] = useState<string>('All');
   const [prospectSearch, setProspectSearch] = useState('');
+  const [prospectEmailOnly, setProspectEmailOnly] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const dmText = (p: ProspectRow) =>
@@ -123,7 +125,7 @@ export default function Admin() {
     setProspectsLoading(true);
     const { data } = await supabase
       .from('prospects')
-      .select('id, platform, handle, name, profile_url, followers, median_views, engagement_rate, content_tags, niche_fit, status, notes, contacted_at')
+      .select('id, platform, handle, name, profile_url, followers, median_views, engagement_rate, content_tags, niche_fit, status, notes, contacted_at, email')
       .order('engagement_rate', { ascending: false, nullsFirst: false })
       .order('followers', { ascending: true });
     setProspects((data as ProspectRow[]) ?? []);
@@ -688,6 +690,13 @@ export default function Admin() {
                   {pl} ({prospects.filter((p) => pl === 'All' || p.platform === pl).length})
                 </button>
               ))}
+              <button
+                className={prospectEmailOnly ? 'btn solid' : 'btn'}
+                style={{ minHeight: 36, padding: '6px 16px', fontSize: 13 }}
+                onClick={() => setProspectEmailOnly((v) => !v)}
+              >
+                Has email ({prospects.filter((p) => p.email).length})
+              </button>
               <span className="muted" style={{ fontSize: 13 }}>
                 1. Profile: check they're US and on-brand. 2. Copy message, then DM. 3. Mark contacted.
               </span>
@@ -709,12 +718,14 @@ export default function Admin() {
                         (prospectStatus === 'All' || p.status === prospectStatus) &&
                         (prospectFit === 'All' || p.niche_fit === prospectFit) &&
                         (prospectPlatform === 'All' || p.platform === prospectPlatform) &&
+                        (!prospectEmailOnly || !!p.email) &&
                         (!prospectSearch || `${p.handle} ${p.name ?? ''} ${p.content_tags ?? ''}`.toLowerCase().includes(prospectSearch.toLowerCase())))
                       .map((p) => (
                         <tr key={p.id}>
                           <td>
                             <a href={p.profile_url ?? '#'} target="_blank" rel="noreferrer">@{p.handle}</a>
                             <div className="muted" style={{ fontSize: 12 }}>{p.platform}{p.name ? ` · ${p.name}` : ''}</div>
+                            {p.email && <a href={`mailto:${p.email}`} style={{ fontSize: 12 }}>{p.email}</a>}
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
