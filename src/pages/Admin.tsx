@@ -102,14 +102,30 @@ export default function Admin() {
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [prospectsLoading, setProspectsLoading] = useState(true);
   const [prospectStatus, setProspectStatus] = useState<string>('New');
-  const [prospectFit, setProspectFit] = useState<string>('Strong');
+  const [prospectFit, setProspectFit] = useState<string>('All');
+  const [prospectPlatform, setProspectPlatform] = useState<string>('All');
+  const [prospectSearch, setProspectSearch] = useState('');
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const dmText = (p: ProspectRow) =>
+    `Hey ${p.name?.split(' ')[0] || p.handle}! Love your fitness content. CANLAB is opening a small US creator program: 60% off our products, plus 10–20% commission once you hit $10k in monthly sales, and we supply the reels. 500–3.5k followers is exactly who we're looking for. Want the details? You can apply at canlabacademy.com`;
+
+  const copyDm = async (p: ProspectRow) => {
+    try { await navigator.clipboard.writeText(dmText(p)); } catch { /* clipboard blocked */ }
+    setCopiedId(p.id);
+    setTimeout(() => setCopiedId((c) => (c === p.id ? null : c)), 2000);
+  };
+
+  const dmLink = (p: ProspectRow) =>
+    p.platform === 'Instagram' ? `https://ig.me/m/${p.handle}` : p.profile_url ?? '#';
 
   const loadProspects = async () => {
     setProspectsLoading(true);
     const { data } = await supabase
       .from('prospects')
       .select('id, platform, handle, name, profile_url, followers, median_views, engagement_rate, content_tags, niche_fit, status, notes, contacted_at')
-      .order('engagement_rate', { ascending: false });
+      .order('engagement_rate', { ascending: false, nullsFirst: false })
+      .order('followers', { ascending: true });
     setProspects((data as ProspectRow[]) ?? []);
     setProspectsLoading(false);
   };
@@ -653,8 +669,27 @@ export default function Admin() {
                 <option value="Possible">Possible fit</option>
                 <option value="Weak">Weak fit</option>
               </select>
+              <input
+                value={prospectSearch}
+                onChange={(e) => setProspectSearch(e.target.value)}
+                placeholder="Search handle or hashtag"
+                aria-label="Search prospects"
+                style={{ minWidth: 200 }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12, alignItems: 'center' }}>
+              {['All', 'TikTok', 'Instagram'].map((pl) => (
+                <button
+                  key={pl}
+                  className={prospectPlatform === pl ? 'btn solid' : 'btn'}
+                  style={{ minHeight: 36, padding: '6px 16px', fontSize: 13 }}
+                  onClick={() => setProspectPlatform(pl)}
+                >
+                  {pl} ({prospects.filter((p) => pl === 'All' || p.platform === pl).length})
+                </button>
+              ))}
               <span className="muted" style={{ fontSize: 13 }}>
-                US TikTok creators, 500–3,500 followers. Send a short personal DM with #ad-compliant wording, then update the status.
+                1. Profile: check they're US and on-brand. 2. Copy message, then DM. 3. Mark contacted.
               </span>
             </div>
             {prospectsLoading ? (
@@ -664,21 +699,39 @@ export default function Admin() {
                 <table className="data">
                   <thead>
                     <tr>
-                      <th>Creator</th><th className="r">Followers</th><th className="r">Median views</th><th className="r">Engagement</th>
+                      <th>Creator</th><th>Actions</th><th className="r">Followers</th><th className="r">Median views</th><th className="r">Engagement</th>
                       <th>Tags</th><th>Fit</th><th>Status</th><th>Notes</th>
                     </tr>
                   </thead>
                   <tbody>
                     {prospects
-                      .filter((p) => (prospectStatus === 'All' || p.status === prospectStatus) && (prospectFit === 'All' || p.niche_fit === prospectFit))
+                      .filter((p) =>
+                        (prospectStatus === 'All' || p.status === prospectStatus) &&
+                        (prospectFit === 'All' || p.niche_fit === prospectFit) &&
+                        (prospectPlatform === 'All' || p.platform === prospectPlatform) &&
+                        (!prospectSearch || `${p.handle} ${p.name ?? ''} ${p.content_tags ?? ''}`.toLowerCase().includes(prospectSearch.toLowerCase())))
                       .map((p) => (
                         <tr key={p.id}>
                           <td>
                             <a href={p.profile_url ?? '#'} target="_blank" rel="noreferrer">@{p.handle}</a>
-                            <div className="muted" style={{ fontSize: 12 }}>{p.name}</div>
+                            <div className="muted" style={{ fontSize: 12 }}>{p.platform}{p.name ? ` · ${p.name}` : ''}</div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              <a className="btn" style={{ minHeight: 30, padding: '4px 10px', fontSize: 12 }} href={p.profile_url ?? '#'} target="_blank" rel="noreferrer">Profile ↗</a>
+                              <button className="btn" style={{ minHeight: 30, padding: '4px 10px', fontSize: 12 }} onClick={() => copyDm(p)}>
+                                {copiedId === p.id ? 'Copied ✓' : 'Copy message'}
+                              </button>
+                              <a className="btn" style={{ minHeight: 30, padding: '4px 10px', fontSize: 12 }} href={dmLink(p)} target="_blank" rel="noreferrer">DM ↗</a>
+                              {p.status === 'New' && (
+                                <button className="btn solid" style={{ minHeight: 30, padding: '4px 10px', fontSize: 12 }} onClick={() => updateProspect(p.id, { status: 'Contacted' })}>
+                                  Mark contacted
+                                </button>
+                              )}
+                            </div>
                           </td>
                           <td className="r">{p.followers?.toLocaleString('en-US')}</td>
-                          <td className="r">{p.median_views?.toLocaleString('en-US')}</td>
+                          <td className="r">{p.median_views != null ? p.median_views.toLocaleString('en-US') : '—'}</td>
                           <td className="r">{p.engagement_rate != null ? `${p.engagement_rate}%` : '—'}</td>
                           <td style={{ fontSize: 12 }}>{p.content_tags}</td>
                           <td>{p.niche_fit}</td>
