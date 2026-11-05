@@ -691,6 +691,13 @@ export default function Admin() {
                 </button>
               ))}
               <button
+                className={prospectSearch === 'midlife' ? 'btn solid' : 'btn'}
+                style={{ minHeight: 36, padding: '6px 16px', fontSize: 13 }}
+                onClick={() => setProspectSearch((v) => (v === 'midlife' ? '' : 'midlife'))}
+              >
+                Midlife women ({prospects.filter((p) => (p.content_tags ?? '').toLowerCase().includes('midlife')).length})
+              </button>
+              <button
                 className={prospectEmailOnly ? 'btn solid' : 'btn'}
                 style={{ minHeight: 36, padding: '6px 16px', fontSize: 13 }}
                 onClick={() => setProspectEmailOnly((v) => !v)}
