@@ -680,7 +680,7 @@ export default function Admin() {
               />
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12, alignItems: 'center' }}>
-              {['All', 'TikTok', 'Instagram'].map((pl) => (
+              {['All', 'TikTok', 'Instagram', 'YouTube'].map((pl) => (
                 <button
                   key={pl}
                   className={prospectPlatform === pl ? 'btn solid' : 'btn'}
