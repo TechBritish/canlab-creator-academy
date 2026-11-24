@@ -4,7 +4,7 @@ import Icon from '../Icon';
 import { supabase } from '../../lib/supabaseClient';
 
 const FAQ = [
-  { q: 'Who is this for?', a: 'US-based creators aged 18+ with 500 to 3,500 genuine followers who post about science, labs, biotech or product reviews.' },
+  { q: 'Who is this for?', a: 'US-based creators aged 18+, of any follower count, who post about science, labs, biotech or product reviews.' },
   { q: 'Does it cost anything?', a: 'No. There is no monthly fee. Training, reels, clips and the community are free for accepted creators.' },
   { q: 'How does commission work?', a: 'It is based on your monthly eligible net sales. Under $10k: no commission, but product at 60% off. $10k–$49,999: 10%. $50k–$149,999: 15%. $150k+: 20%. Once you hit a tier it applies to the whole month.' },
   { q: 'How and when am I paid?', a: 'Monthly, on the 30th, after a 30-day refund hold. Balances under $75 roll over. You sign the Partner Agreement online and complete a W-9 and payout details securely before your first payout.' },
@@ -21,7 +21,7 @@ export default function ApplyForm() {
   const passRef = useRef<HTMLInputElement>(null);
   const handleRef = useRef<HTMLInputElement>(null);
   const platRef = useRef<HTMLSelectElement>(null);
-  const follRef = useRef<HTMLSelectElement>(null);
+  const follRef = useRef<HTMLInputElement>(null);
   const nicheRef = useRef<HTMLTextAreaElement>(null);
   const ageRef = useRef<HTMLInputElement>(null);
   const ruoRef = useRef<HTMLInputElement>(null);
@@ -90,7 +90,7 @@ export default function ApplyForm() {
           <div className="head">
             <span className="label">Apply</span>
             <h2>Join <span className="serif">Cohort 01.</span></h2>
-            <p>We review every application within 48 hours. Approved creators get portal access and start Module 1 the same day.</p>
+            <p>Apply once and you're in: portal access, your referral link and Module 1 are ready straight away.</p>
           </div>
           <div className="faq">
             {FAQ.map((f) => (
@@ -109,7 +109,7 @@ export default function ApplyForm() {
           <div className="field"><label htmlFor="a-pass">Password</label><input id="a-pass" ref={passRef} type="password" autoComplete="new-password" aria-invalid={invalid === 'password' || undefined} /></div>
           <div className="row2">
             <div className="field"><label htmlFor="a-plat">Main platform</label><select id="a-plat" ref={platRef} defaultValue=""><option value="" disabled>Select platform</option><option>TikTok</option><option>Instagram</option><option>YouTube Shorts</option><option>X</option><option>LinkedIn</option><option>Facebook</option></select></div>
-            <div className="field"><label htmlFor="a-foll">Followers</label><select id="a-foll" ref={follRef} defaultValue=""><option value="" disabled>Select range</option><option>500–1,000</option><option>1,000–2,000</option><option>2,000–3,500</option></select></div>
+            <div className="field"><label htmlFor="a-foll">Followers (main platform)</label><input id="a-foll" ref={follRef} inputMode="numeric" placeholder="e.g. 1,850" /></div>
           </div>
           <div className="field"><label htmlFor="a-handle">Handle or profile link</label><input id="a-handle" ref={handleRef} placeholder="@jordanlabnotes" aria-invalid={invalid === 'handle' || undefined} /></div>
           <div className="field"><label htmlFor="a-niche">What do you post about?</label><textarea id="a-niche" ref={nicheRef} placeholder="Lab life, biotech explainers and science news." /></div>

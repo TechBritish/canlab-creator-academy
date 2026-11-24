@@ -9,8 +9,8 @@
   --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box}
-html{background:var(--void)}
-body{background:var(--void);color:var(--frost);font-family:var(--sans);font-size:16px;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html{background:var(--void);overflow-x:clip;max-width:100%}
+body{background:var(--void);color:var(--frost);font-family:var(--sans);font-size:16px;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-x:clip;max-width:100%}
 h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.03em;line-height:1.02;text-wrap:balance}
 p{margin:0}
 button,input,select,textarea{font:inherit;color:inherit}

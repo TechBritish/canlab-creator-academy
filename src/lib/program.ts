@@ -20,7 +20,7 @@ export function tierForSales(sales: number) {
 }
 
 export const PROGRAM_FACTS = [
-  'Who can join: US residents aged 18+ with 500 to 3,500 genuine followers on their main platform. Acceptance is subject to Canlab approval.',
+  'Who can join: US residents aged 18+, with any follower count on their main platform. Acceptance is subject to Canlab approval.',
   'Everyone joins as a Product Partner. There is no monthly fee.',
   'Commission is based on monthly eligible net sales through your link or code: under $10,000 no commission (but you get product at 60% off); $10,000 to $49,999 earns 10%; $50,000 to $149,999 earns 15%; $150,000+ earns 20%.',
   'Once you reach a tier, that rate applies to the whole month\'s sales, not just the amount above the threshold.',

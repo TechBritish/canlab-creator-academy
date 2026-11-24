@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 const STEPS = [
-  { k: '01', h: 'Apply', p: 'Tell us where you post and what you post about. We accept US-based creators aged 18+ with 500 to 3,500 genuine followers.', tags: ['48h review', '18+ · US only'] },
+  { k: '01', h: 'Apply', p: 'Tell us where you post and what you post about. We accept US-based creators aged 18+, of any follower count.', tags: ['48h review', '18+ · US only'] },
   { k: '02', h: 'Sign & train', p: 'E-sign the Partner Agreement online, then work through five short video modules on the products, the rules and the formats that convert.', tags: ['E-sign online', '14 lessons'] },
   { k: '03', h: 'Certify', p: 'Pass the compliance check with a perfect score. That unlocks your referral link, your discount code and the clip library.', tags: ['5 questions', '100% to pass'] },
   { k: '04', h: 'Create', p: "Post 4 times and share 2 reels a week. The reels come ready-made from the Academy. Got a promo package? Start with an unboxing post.", tags: ['4 posts + 2 reels', 'Reels supplied'] },

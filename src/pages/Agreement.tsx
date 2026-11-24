@@ -162,7 +162,7 @@ export default function Agreement() {
             <div className="field"><label htmlFor="g-handles">Primary social handle(s)</label><input id="g-handles" ref={handlesRef} defaultValue={profile?.handle ?? ''} placeholder="@jordanlabnotes (TikTok), @jordan.lab (Instagram)" aria-invalid={invalid === 'handles' || undefined} /></div>
             <div className="field"><label htmlFor="g-option">Compensation option</label><input id="g-option" value="Product Partner (default enrollment)" readOnly /></div>
             <div className="field"><label htmlFor="g-sig">Type your full legal name to sign</label><input id="g-sig" ref={sigRef} autoComplete="off" style={{ fontFamily: 'var(--serif, Georgia, serif)', fontStyle: 'italic', fontSize: 20 }} aria-invalid={invalid === 'signature' || undefined} /></div>
-            <label className="check"><input type="checkbox" ref={eligRef} /> I am 18 or older, live in the United States, control the accounts listed, and have 500–3,500 genuine followers on my main platform.</label>
+            <label className="check"><input type="checkbox" ref={eligRef} /> I am 18 or older, live in the United States, control the accounts listed, and have a genuine follower count on my main platform.</label>
             <label className="check"><input type="checkbox" ref={termsRef} /> I have read and agree to the Micro-Influencer Partner Agreement above, and I agree to sign it electronically.</label>
             <button className="btn solid" type="submit" disabled={submitting} style={{ width: '100%' }}>{submitting ? 'Signing…' : 'Sign agreement'} <Icon id="arrow" className="i arrow" /></button>
             {msg && <div className={`msg ${msg.type}`} role="status" aria-live="polite">{msg.text}</div>}

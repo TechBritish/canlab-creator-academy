@@ -17,6 +17,7 @@ const WOO_CONSUMER_KEY = Deno.env.get('WOO_CONSUMER_KEY') ?? '';
 const WOO_CONSUMER_SECRET = Deno.env.get('WOO_CONSUMER_SECRET') ?? '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET') ?? '';
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
@@ -35,20 +36,25 @@ Deno.serve(async (req) => {
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   }
 
-  const authHeader = req.headers.get('authorization') ?? '';
-  const jwt = authHeader.replace(/^Bearer /i, '');
-  const { data: userData, error: userError } = await admin.auth.getUser(jwt);
-  if (userError || !userData.user) {
-    return new Response('Unauthorized', { status: 401, headers: corsHeaders });
-  }
+  // Two ways in: an internal call from the database at sign-up (shared secret),
+  // or an admin's logged-in request from the admin dashboard.
+  const internalOk = INTERNAL_SECRET !== '' && req.headers.get('x-internal-secret') === INTERNAL_SECRET;
+  if (!internalOk) {
+    const authHeader = req.headers.get('authorization') ?? '';
+    const jwt = authHeader.replace(/^Bearer /i, '');
+    const { data: userData, error: userError } = await admin.auth.getUser(jwt);
+    if (userError || !userData.user) {
+      return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+    }
 
-  const { data: callerProfile } = await admin
-    .from('profiles')
-    .select('role')
-    .eq('id', userData.user.id)
-    .maybeSingle();
-  if (callerProfile?.role !== 'admin') {
-    return new Response('Forbidden', { status: 403, headers: corsHeaders });
+    const { data: callerProfile } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', userData.user.id)
+      .maybeSingle();
+    if (callerProfile?.role !== 'admin') {
+      return new Response('Forbidden', { status: 403, headers: corsHeaders });
+    }
   }
 
   let body: { ref_code?: string; discount_percent?: number };

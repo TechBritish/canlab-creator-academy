@@ -110,7 +110,7 @@ export default function Admin() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const dmText = (p: ProspectRow) =>
-    `Hey ${p.name?.split(' ')[0] || p.handle}! Love your fitness content. CANLAB is opening a small US creator program: 60% off our products, plus 10–20% commission once you hit $10k in monthly sales, and we supply the reels. 500–3.5k followers is exactly who we're looking for. Want the details? You can apply at canlabacademy.com`;
+    `Hey ${p.name?.split(' ')[0] || p.handle}! Love your fitness content. CANLAB is opening a small US creator program: 60% off our products, plus 10–20% commission once you hit $10k in monthly sales, and we supply the reels. creators of any size are welcome. Want the details? You can apply at canlabacademy.com`;
 
   const copyDm = async (p: ProspectRow) => {
     try { await navigator.clipboard.writeText(dmText(p)); } catch { /* clipboard blocked */ }
@@ -271,7 +271,7 @@ export default function Admin() {
     if (status === 'approved') {
       const creator = rows.find((r) => r.id === id);
       if (creator?.ref_code) {
-        const discountPercent = Number(discountDraft[id]?.trim() || '10') || 10;
+        const discountPercent = Number(discountDraft[id]?.trim() || '60') || 60;
         const {
           data: { session },
         } = await supabase.auth.getSession();

@@ -8,7 +8,7 @@ export const AGREEMENT_SECTIONS: { h: string; p: string[] }[] = [
   {
     h: '1. Program and eligibility',
     p: [
-      'Canlab Group (the "Company") engages the Influencer as an independent promotional partner. The Influencer confirms they are at least 18, reside in the United States, control the listed account(s), and have 500–3,500 genuine followers on their primary platform at enrollment. Acceptance is subject to Company approval. The Influencer is not an employee, agent, or medical representative of the Company.',
+      'Canlab Group (the "Company") engages the Influencer as an independent promotional partner. The Influencer confirms they are at least 18, reside in the United States, control the listed account(s), and have a genuine follower count on their primary platform at enrollment. Acceptance is subject to Company approval. The Influencer is not an employee, agent, or medical representative of the Company.',
     ],
   },
   {
