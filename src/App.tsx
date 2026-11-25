@@ -6,13 +6,14 @@ import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import PublicPage from './pages/PublicPage';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import Portal from './pages/Portal';
 import Admin from './pages/Admin';
 import Agreement from './pages/Agreement';
 
 function AppShell() {
   const { pathname } = useLocation();
-  const showPublicNav = pathname === '/' || pathname === '/login' || pathname === '/agreement';
+  const showPublicNav = pathname === '/' || pathname === '/login' || pathname === '/reset-password' || pathname === '/agreement';
 
   return (
     <>
@@ -21,6 +22,7 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<PublicPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/portal"
           element={
