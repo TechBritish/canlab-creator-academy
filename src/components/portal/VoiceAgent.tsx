@@ -143,7 +143,11 @@ const VoiceAgent = forwardRef<VoiceAgentHandle, {
   onSwitchTab,
   onCallStateChange,
 }, ref) {
-  const publicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
+  // Public (client-side) key restricted to canlabacademy.com and this assistant.
+  // The env var is only used off the live domain, e.g. local development.
+  const publicKey = /(^|\.)canlabacademy\.com$/.test(window.location.hostname)
+    ? '61b5d5bd-14a0-48a6-93f2-cceb91480601'
+    : import.meta.env.VITE_VAPI_PUBLIC_KEY;
   const assistantId = import.meta.env.VITE_VAPI_ASSISTANT_ID;
 
   const navigate = useNavigate();
